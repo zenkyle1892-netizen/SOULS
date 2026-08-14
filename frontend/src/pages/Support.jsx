@@ -174,15 +174,23 @@ export default function Support() {
             {/* Google form embed */}
             <div className="mt-8 rounded-xl overflow-hidden border border-ink/10 bg-white/80">
               {settings.check_in_form_url ? (
-                <iframe
-                  title="Are We Okay check-in form"
-                  src={settings.check_in_form_url}
-                  className="w-full"
-                  style={{ height: 900, border: 0 }}
-                  data-testid="check-in-iframe"
-                >
-                  Loading…
-                </iframe>
+                <>
+                  <div className="px-4 py-2.5 bg-terracotta-light/60 border-b border-ink/5 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-terracotta" />
+                    <p className="text-xs font-mono tracking-wide text-terracotta-dark">
+                      Sign in with your <strong>@spcdavao.edu.ph</strong> account to submit — responses stay anonymous within the form.
+                    </p>
+                  </div>
+                  <iframe
+                    title="Are We Okay check-in form"
+                    src={settings.check_in_form_url}
+                    className="w-full"
+                    style={{ height: 900, border: 0 }}
+                    data-testid="check-in-iframe"
+                  >
+                    Loading…
+                  </iframe>
+                </>
               ) : (
                 <div className="p-4">
                   <div className="aspect-[4/3] md:aspect-[16/7] w-full border border-dashed border-ink/20 rounded-xl flex items-center justify-center">

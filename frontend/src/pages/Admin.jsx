@@ -18,7 +18,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { Compass, LogOut, Plus, Trash2, Save, ArrowLeft } from "lucide-react";
+import { Compass, LogOut, Plus, Trash2, Save, ArrowLeft, Sparkles, ExternalLink } from "lucide-react";
 
 function LoginScreen({ onLogin }) {
   const [pin, setPin] = useState("");
@@ -310,6 +310,117 @@ function QuoteManager() {
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function ContributionPublisher() {
+  const [text, setText] = useState("");
+  const [attribution, setAttribution] = useState("Upper-Year Student");
+  const [recent, setRecent] = useState([]);
+  const [publishing, setPublishing] = useState(false);
+  const [contributionFormUrl, setContributionFormUrl] = useState("");
+
+  const load = () => api.get("/quotes").then((r) => setRecent(r.data.slice(-5).reverse()));
+
+  useEffect(() => {
+    load();
+    api.get("/settings").then((r) => setContributionFormUrl(r.data.contribution_form_url || ""));
+  }, []);
+
+  const publish = async () => {
+    if (!text.trim()) return toast.error("Paste a contribution first.");
+    setPublishing(true);
+    try {
+      const maxOrder = recent.reduce((m, q) => Math.max(m, q.order || 0), 0);
+      await api.post(
+        "/quotes",
+        { text: text.trim(), attribution: attribution.trim() || "Upper-Year Student", order: maxOrder + 1 },
+        { headers: adminHeaders() }
+      );
+      toast.success("Published to the quote wall.");
+      setText("");
+      setAttribution("Upper-Year Student");
+      load();
+    } catch {
+      toast.error("Publish failed.");
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="card-flat p-6 md:p-8" data-testid="contribution-publish-card">
+        <div className="flex items-start justify-between gap-4 flex-wrap mb-2">
+          <div>
+            <p className="overline mb-2">Curated Publish</p>
+            <h3 className="font-serif text-2xl tracking-tight">
+              Publish a contribution.
+            </h3>
+            <p className="text-sm text-inkMuted mt-2 max-w-xl leading-relaxed">
+              Review a submission from the Google Form / Sheet, paste the text
+              below, and click Publish. It appears immediately on the Ask MLS
+              quote wall.
+            </p>
+          </div>
+          {contributionFormUrl && (
+            <a
+              href={contributionFormUrl.replace("?embedded=true", "").replace(/\/viewform.*/, "/edit")}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm text-sage hover:text-sage-dark shrink-0"
+              data-testid="open-form-responses"
+            >
+              <ExternalLink className="w-4 h-4" strokeWidth={1.5} />
+              Open form
+            </a>
+          )}
+        </div>
+
+        <Textarea
+          className="mt-4"
+          rows={4}
+          placeholder="Paste the contribution text here…"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          data-testid="contribution-text-input"
+        />
+        <div className="grid md:grid-cols-[1fr_auto] gap-3 mt-3 items-center">
+          <Input
+            placeholder="Attribution"
+            value={attribution}
+            onChange={(e) => setAttribution(e.target.value)}
+            data-testid="contribution-attribution-input"
+          />
+          <Button
+            onClick={publish}
+            disabled={publishing || !text.trim()}
+            data-testid="publish-contribution-btn"
+            className="bg-sage hover:bg-sage-dark text-white"
+          >
+            <Sparkles className="w-4 h-4 mr-1.5" strokeWidth={1.75} />
+            {publishing ? "Publishing…" : "Publish to wall"}
+          </Button>
+        </div>
+      </div>
+
+      <div>
+        <p className="overline mb-3">Recently published</p>
+        <div className="space-y-2">
+          {recent.map((q) => (
+            <div key={q.id} className="card-flat p-4" data-testid={`recent-quote-${q.id}`}>
+              <p className="font-serif italic text-base leading-snug">"{q.text}"</p>
+              <p className="mt-2 font-mono text-[10px] tracking-[0.2em] uppercase text-inkMuted">
+                — {q.attribution}
+              </p>
+            </div>
+          ))}
+          {recent.length === 0 && (
+            <p className="text-sm text-inkMuted">No quotes yet.</p>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -697,6 +808,7 @@ export default function Admin() {
         <Tabs defaultValue="announcements">
           <TabsList data-testid="admin-tabs" className="flex-wrap">
             <TabsTrigger value="announcements" data-testid="tab-announcements">Announcements</TabsTrigger>
+            <TabsTrigger value="contributions" data-testid="tab-contributions">Contributions</TabsTrigger>
             <TabsTrigger value="faqs" data-testid="tab-faqs">FAQs</TabsTrigger>
             <TabsTrigger value="quotes" data-testid="tab-quotes">Upper-Year Quotes</TabsTrigger>
             <TabsTrigger value="links" data-testid="tab-links">Links</TabsTrigger>
@@ -704,6 +816,9 @@ export default function Admin() {
           </TabsList>
           <TabsContent value="announcements" className="mt-6">
             <AnnouncementManager />
+          </TabsContent>
+          <TabsContent value="contributions" className="mt-6">
+            <ContributionPublisher />
           </TabsContent>
           <TabsContent value="faqs" className="mt-6">
             <FAQManager />

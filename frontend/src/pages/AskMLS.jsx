@@ -93,15 +93,23 @@ export default function AskMLS() {
 
               <div className="mt-8 rounded-xl overflow-hidden border border-ink/10 bg-white">
                 {settings.ask_form_url ? (
-                  <iframe
-                    title="Ask MLS submission form"
-                    src={settings.ask_form_url}
-                    className="w-full"
-                    style={{ height: 900, border: 0 }}
-                    data-testid="ask-form-iframe"
-                  >
-                    Loading…
-                  </iframe>
+                  <>
+                    <div className="px-4 py-2.5 bg-sage-light/60 border-b border-ink/5 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-sage" />
+                      <p className="text-xs font-mono tracking-wide text-sage-dark">
+                        Sign in with your <strong>@spcdavao.edu.ph</strong> account to submit.
+                      </p>
+                    </div>
+                    <iframe
+                      title="Ask MLS submission form"
+                      src={settings.ask_form_url}
+                      className="w-full"
+                      style={{ height: 900, border: 0 }}
+                      data-testid="ask-form-iframe"
+                    >
+                      Loading…
+                    </iframe>
+                  </>
                 ) : (
                   <div className="border border-dashed border-ink/20 rounded-xl p-6 flex items-center justify-center min-h-[220px] m-2">
                     <div className="text-center">
@@ -172,6 +180,12 @@ export default function AskMLS() {
                     <ArrowUpRight className="w-4 h-4" strokeWidth={1.75} />
                   </a>
                   <div className="mt-6 rounded-xl overflow-hidden border border-ink/10 bg-white">
+                    <div className="px-4 py-2.5 bg-sage-light/60 border-b border-ink/5 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-sage" />
+                      <p className="text-xs font-mono tracking-wide text-sage-dark">
+                        Sign in with your <strong>@spcdavao.edu.ph</strong> account to submit.
+                      </p>
+                    </div>
                     <iframe
                       title="Upper-Year contribution form"
                       src={settings.contribution_form_url}
