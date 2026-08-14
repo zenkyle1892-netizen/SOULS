@@ -54,6 +54,8 @@ class Quote(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     text: str
     attribution: str = "Upper-Year Student"
+    year_level: str = ""  # "" | "2nd Year" | "3rd Year" | "4th Year"
+    is_featured: bool = False
     order: int = 0
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
@@ -61,12 +63,14 @@ class Quote(BaseModel):
 class QuoteCreate(BaseModel):
     text: str
     attribution: str = "Upper-Year Student"
+    year_level: str = ""
     order: int = 0
 
 
 class QuoteUpdate(BaseModel):
     text: Optional[str] = None
     attribution: Optional[str] = None
+    year_level: Optional[str] = None
     order: Optional[int] = None
 
 
@@ -167,6 +171,26 @@ async def delete_quote(quote_id: str, _: bool = Depends(require_admin)):
     return {"ok": True}
 
 
+@api_router.post("/quotes/{quote_id}/feature", response_model=Quote)
+async def feature_quote(quote_id: str, _: bool = Depends(require_admin)):
+    # Atomic: unset all is_featured, then set this one
+    target = await db.quotes.find_one({"id": quote_id}, {"_id": 0})
+    if not target:
+        raise HTTPException(status_code=404, detail="Quote not found")
+    await db.quotes.update_many({"is_featured": True}, {"$set": {"is_featured": False}})
+    result = await db.quotes.find_one_and_update(
+        {"id": quote_id}, {"$set": {"is_featured": True}},
+        return_document=True, projection={"_id": 0}
+    )
+    return Quote(**result)
+
+
+@api_router.post("/quotes/unfeature", response_model=dict)
+async def unfeature_all(_: bool = Depends(require_admin)):
+    await db.quotes.update_many({"is_featured": True}, {"$set": {"is_featured": False}})
+    return {"ok": True}
+
+
 # --------- Announcements ---------
 class Announcement(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -175,6 +199,7 @@ class Announcement(BaseModel):
     body: str
     date: str  # ISO date string
     source: str = "Society of United Medical Laboratory Science"
+    category: str = "Reminder"  # "Academic" | "Event" | "Reminder"
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
@@ -183,6 +208,7 @@ class AnnouncementCreate(BaseModel):
     body: str
     date: str
     source: str = "Society of United Medical Laboratory Science"
+    category: str = "Reminder"
 
 
 class AnnouncementUpdate(BaseModel):
@@ -190,6 +216,7 @@ class AnnouncementUpdate(BaseModel):
     body: Optional[str] = None
     date: Optional[str] = None
     source: Optional[str] = None
+    category: Optional[str] = None
 
 
 @api_router.get("/announcements", response_model=List[Announcement])

@@ -18,7 +18,9 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { Compass, LogOut, Plus, Trash2, Save, ArrowLeft, Sparkles, ExternalLink } from "lucide-react";
+import { Compass, LogOut, Plus, Trash2, Save, ArrowLeft, Sparkles, ExternalLink, Star } from "lucide-react";
+
+const ANN_CATEGORIES = ["Academic", "Event", "Reminder"];
 
 function LoginScreen({ onLogin }) {
   const [pin, setPin] = useState("");
@@ -210,7 +212,7 @@ function FAQManager() {
 
 function QuoteManager() {
   const [quotes, setQuotes] = useState([]);
-  const [draft, setDraft] = useState({ text: "", attribution: "Upper-Year Student", order: 0 });
+  const [draft, setDraft] = useState({ text: "", attribution: "Upper-Year Student", year_level: "", order: 0 });
 
   const load = () => api.get("/quotes").then((r) => setQuotes(r.data));
   useEffect(() => { load(); }, []);
@@ -220,7 +222,7 @@ function QuoteManager() {
     try {
       await api.post("/quotes", draft, { headers: adminHeaders() });
       toast.success("Quote added.");
-      setDraft({ text: "", attribution: "Upper-Year Student", order: 0 });
+      setDraft({ text: "", attribution: "Upper-Year Student", year_level: "", order: 0 });
       load();
     } catch { toast.error("Failed to add quote."); }
   };
@@ -228,7 +230,7 @@ function QuoteManager() {
   const save = async (q) => {
     try {
       await api.put(`/quotes/${q.id}`, {
-        text: q.text, attribution: q.attribution, order: Number(q.order) || 0,
+        text: q.text, attribution: q.attribution, year_level: q.year_level || "", order: Number(q.order) || 0,
       }, { headers: adminHeaders() });
       toast.success("Saved.");
       load();
@@ -244,6 +246,19 @@ function QuoteManager() {
     } catch { toast.error("Delete failed."); }
   };
 
+  const feature = async (id, currentlyFeatured) => {
+    try {
+      if (currentlyFeatured) {
+        await api.post("/quotes/unfeature", {}, { headers: adminHeaders() });
+        toast.success("Unpinned featured quote.");
+      } else {
+        await api.post(`/quotes/${id}/feature`, {}, { headers: adminHeaders() });
+        toast.success("Pinned as featured quote on Ask MLS.");
+      }
+      load();
+    } catch { toast.error("Feature action failed."); }
+  };
+
   return (
     <div className="space-y-8">
       <div className="card-flat p-6" data-testid="quote-create-card">
@@ -255,13 +270,22 @@ function QuoteManager() {
           onChange={(e) => setDraft({ ...draft, text: e.target.value })}
           data-testid="new-quote-text"
         />
-        <div className="grid md:grid-cols-[1fr_120px] gap-3 mt-3">
+        <div className="grid md:grid-cols-[1fr_180px_120px] gap-3 mt-3">
           <Input
             placeholder="Attribution"
             value={draft.attribution}
             onChange={(e) => setDraft({ ...draft, attribution: e.target.value })}
             data-testid="new-quote-attribution"
           />
+          <Select value={draft.year_level || "none"} onValueChange={(v) => setDraft({ ...draft, year_level: v === "none" ? "" : v })}>
+            <SelectTrigger data-testid="new-quote-year"><SelectValue placeholder="Year level" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">No year</SelectItem>
+              <SelectItem value="2nd Year">2nd Year</SelectItem>
+              <SelectItem value="3rd Year">3rd Year</SelectItem>
+              <SelectItem value="4th Year">4th Year</SelectItem>
+            </SelectContent>
+          </Select>
           <Input
             type="number"
             placeholder="Order"
@@ -276,7 +300,12 @@ function QuoteManager() {
 
       <div className="space-y-3">
         {quotes.map((q, idx) => (
-          <div key={q.id} className="card-flat p-5" data-testid={`quote-row-${q.id}`}>
+          <div key={q.id} className={`card-flat p-5 ${q.is_featured ? "border-terracotta/50 bg-terracotta-light/20" : ""}`} data-testid={`quote-row-${q.id}`}>
+            {q.is_featured && (
+              <p className="font-mono text-[10px] tracking-[0.24em] uppercase text-terracotta-dark mb-2 flex items-center gap-1">
+                <Star className="w-3 h-3 fill-current" strokeWidth={1.75} /> Featured on Ask MLS
+              </p>
+            )}
             <Textarea
               rows={2}
               value={q.text}
@@ -285,13 +314,27 @@ function QuoteManager() {
               }}
               data-testid={`edit-quote-text-${q.id}`}
             />
-            <div className="grid md:grid-cols-[1fr_120px] gap-3 mt-3">
+            <div className="grid md:grid-cols-[1fr_180px_100px] gap-3 mt-3">
               <Input
                 value={q.attribution}
                 onChange={(e) => {
                   const next = [...quotes]; next[idx].attribution = e.target.value; setQuotes(next);
                 }}
               />
+              <Select
+                value={q.year_level || "none"}
+                onValueChange={(v) => {
+                  const next = [...quotes]; next[idx].year_level = v === "none" ? "" : v; setQuotes(next);
+                }}
+              >
+                <SelectTrigger><SelectValue placeholder="Year" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No year</SelectItem>
+                  <SelectItem value="2nd Year">2nd Year</SelectItem>
+                  <SelectItem value="3rd Year">3rd Year</SelectItem>
+                  <SelectItem value="4th Year">4th Year</SelectItem>
+                </SelectContent>
+              </Select>
               <Input
                 type="number"
                 value={q.order}
@@ -300,9 +343,19 @@ function QuoteManager() {
                 }}
               />
             </div>
-            <div className="mt-3 flex gap-2">
+            <div className="mt-3 flex gap-2 flex-wrap">
               <Button size="sm" variant="secondary" onClick={() => save(q)} data-testid={`save-quote-${q.id}`}>
                 <Save className="w-4 h-4 mr-1" /> Save
+              </Button>
+              <Button
+                size="sm"
+                variant={q.is_featured ? "default" : "outline"}
+                onClick={() => feature(q.id, q.is_featured)}
+                data-testid={`feature-quote-${q.id}`}
+                className={q.is_featured ? "bg-terracotta hover:bg-terracotta-dark text-white" : ""}
+              >
+                <Star className={`w-4 h-4 mr-1 ${q.is_featured ? "fill-current" : ""}`} />
+                {q.is_featured ? "Unpin" : "Pin as featured"}
               </Button>
               <Button size="sm" variant="destructive" onClick={() => remove(q.id)} data-testid={`delete-quote-${q.id}`}>
                 <Trash2 className="w-4 h-4 mr-1" /> Delete
@@ -318,6 +371,7 @@ function QuoteManager() {
 function ContributionPublisher() {
   const [text, setText] = useState("");
   const [attribution, setAttribution] = useState("Upper-Year Student");
+  const [yearLevel, setYearLevel] = useState("");
   const [recent, setRecent] = useState([]);
   const [publishing, setPublishing] = useState(false);
   const [contributionFormUrl, setContributionFormUrl] = useState("");
@@ -336,12 +390,18 @@ function ContributionPublisher() {
       const maxOrder = recent.reduce((m, q) => Math.max(m, q.order || 0), 0);
       await api.post(
         "/quotes",
-        { text: text.trim(), attribution: attribution.trim() || "Upper-Year Student", order: maxOrder + 1 },
+        {
+          text: text.trim(),
+          attribution: attribution.trim() || "Upper-Year Student",
+          year_level: yearLevel,
+          order: maxOrder + 1,
+        },
         { headers: adminHeaders() }
       );
       toast.success("Published to the quote wall.");
       setText("");
       setAttribution("Upper-Year Student");
+      setYearLevel("");
       load();
     } catch {
       toast.error("Publish failed.");
@@ -387,13 +447,24 @@ function ContributionPublisher() {
           onChange={(e) => setText(e.target.value)}
           data-testid="contribution-text-input"
         />
-        <div className="grid md:grid-cols-[1fr_auto] gap-3 mt-3 items-center">
+        <div className="grid md:grid-cols-[1fr_180px_auto] gap-3 mt-3 items-center">
           <Input
             placeholder="Attribution"
             value={attribution}
             onChange={(e) => setAttribution(e.target.value)}
             data-testid="contribution-attribution-input"
           />
+          <Select value={yearLevel || "none"} onValueChange={(v) => setYearLevel(v === "none" ? "" : v)}>
+            <SelectTrigger data-testid="contribution-year-select">
+              <SelectValue placeholder="Year level (optional)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">No year</SelectItem>
+              <SelectItem value="2nd Year">2nd Year</SelectItem>
+              <SelectItem value="3rd Year">3rd Year</SelectItem>
+              <SelectItem value="4th Year">4th Year</SelectItem>
+            </SelectContent>
+          </Select>
           <Button
             onClick={publish}
             disabled={publishing || !text.trim()}
@@ -414,6 +485,7 @@ function ContributionPublisher() {
               <p className="font-serif italic text-base leading-snug">"{q.text}"</p>
               <p className="mt-2 font-mono text-[10px] tracking-[0.2em] uppercase text-inkMuted">
                 — {q.attribution}
+                {q.year_level && <span className="text-sage"> · {q.year_level}</span>}
               </p>
             </div>
           ))}
@@ -429,7 +501,7 @@ function ContributionPublisher() {
 function AnnouncementManager() {
   const [rows, setRows] = useState([]);
   const today = new Date().toISOString().slice(0, 10);
-  const [draft, setDraft] = useState({ title: "", body: "", date: today, source: "Society of United Medical Laboratory Science" });
+  const [draft, setDraft] = useState({ title: "", body: "", date: today, source: "Society of United Medical Laboratory Science", category: "Reminder" });
 
   const load = () => api.get("/announcements").then((r) => setRows(r.data));
   useEffect(() => { load(); }, []);
@@ -439,7 +511,7 @@ function AnnouncementManager() {
     try {
       await api.post("/announcements", draft, { headers: adminHeaders() });
       toast.success("Announcement posted.");
-      setDraft({ title: "", body: "", date: today, source: draft.source });
+      setDraft({ title: "", body: "", date: today, source: draft.source, category: "Reminder" });
       load();
     } catch { toast.error("Failed to post."); }
   };
@@ -447,7 +519,7 @@ function AnnouncementManager() {
   const save = async (a) => {
     try {
       await api.put(`/announcements/${a.id}`, {
-        title: a.title, body: a.body, date: a.date, source: a.source,
+        title: a.title, body: a.body, date: a.date, source: a.source, category: a.category || "Reminder",
       }, { headers: adminHeaders() });
       toast.success("Saved.");
       load();
@@ -467,7 +539,7 @@ function AnnouncementManager() {
     <div className="space-y-8">
       <div className="card-flat p-6" data-testid="ann-create-card">
         <h3 className="font-serif text-xl mb-4">Post an announcement</h3>
-        <div className="grid md:grid-cols-[1fr_180px] gap-3">
+        <div className="grid md:grid-cols-[1fr_180px_180px] gap-3">
           <Input
             placeholder="Title"
             value={draft.title}
@@ -480,6 +552,14 @@ function AnnouncementManager() {
             onChange={(e) => setDraft({ ...draft, date: e.target.value })}
             data-testid="new-ann-date"
           />
+          <Select value={draft.category} onValueChange={(v) => setDraft({ ...draft, category: v })}>
+            <SelectTrigger data-testid="new-ann-category"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {ANN_CATEGORIES.map((c) => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <Textarea
           className="mt-3"
@@ -504,7 +584,7 @@ function AnnouncementManager() {
       <div className="space-y-3">
         {rows.map((a, idx) => (
           <div key={a.id} className="card-flat p-5" data-testid={`ann-row-${a.id}`}>
-            <div className="grid md:grid-cols-[1fr_180px] gap-3">
+            <div className="grid md:grid-cols-[1fr_180px_180px] gap-3">
               <Input
                 value={a.title}
                 onChange={(e) => {
@@ -518,6 +598,19 @@ function AnnouncementManager() {
                   const next = [...rows]; next[idx].date = e.target.value; setRows(next);
                 }}
               />
+              <Select
+                value={a.category || "Reminder"}
+                onValueChange={(v) => {
+                  const next = [...rows]; next[idx].category = v; setRows(next);
+                }}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {ANN_CATEGORIES.map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <Textarea
               className="mt-3"

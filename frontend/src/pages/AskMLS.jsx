@@ -6,7 +6,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ArrowUpRight, MessageSquare, Quote as QuoteIcon } from "lucide-react";
+import { ArrowUpRight, MessageSquare, Quote as QuoteIcon, Star } from "lucide-react";
 
 const CATEGORIES = [
   "Academic",
@@ -46,6 +46,39 @@ export default function AskMLS() {
             representatives will help direct you toward the appropriate
             information or office.
           </p>
+
+          {/* Featured quote hero */}
+          {(() => {
+            const featured = quotes.find((q) => q.is_featured);
+            if (!featured) return null;
+            return (
+              <div
+                className="mt-14 relative bg-white border border-ink/10 rounded-3xl p-8 md:p-12 max-w-4xl grid md:grid-cols-[80px_1fr] gap-6 items-start"
+                data-testid="featured-quote"
+              >
+                <div className="hidden md:flex flex-col items-center gap-3">
+                  <span className="w-12 h-12 rounded-full bg-terracotta-light border border-terracotta/30 flex items-center justify-center text-terracotta-dark">
+                    <Star strokeWidth={1.75} className="w-5 h-5 fill-current" />
+                  </span>
+                  <span className="writing-vertical font-mono text-[10px] tracking-[0.2em] uppercase text-inkMuted rotate-180" style={{ writingMode: "vertical-rl" }}>
+                    Featured
+                  </span>
+                </div>
+                <div>
+                  <p className="md:hidden font-mono text-[10px] tracking-[0.24em] uppercase text-terracotta-dark mb-3 flex items-center gap-1.5">
+                    <Star className="w-3 h-3 fill-current" strokeWidth={1.75} /> Featured contribution
+                  </p>
+                  <p className="font-serif text-2xl md:text-3xl leading-snug italic">
+                    "{featured.text}"
+                  </p>
+                  <p className="mt-6 font-mono text-[11px] tracking-[0.2em] uppercase text-inkMuted">
+                    — {featured.attribution}
+                    {featured.year_level && <span className="text-sage"> · {featured.year_level}</span>}
+                  </p>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </section>
 
@@ -60,8 +93,9 @@ export default function AskMLS() {
                 Submit a question.
               </h2>
               <p className="text-inkMuted leading-relaxed mb-6">
-                A Google Form will be embedded here. Until then, tap the button
-                to open the form in a new tab.
+                Fill out the form below with your @spcdavao.edu.ph account, or
+                open it in a new tab. Student representatives will help route
+                it to the right office.
               </p>
 
               <a
@@ -138,7 +172,7 @@ export default function AskMLS() {
             </div>
 
             <div className="space-y-3">
-              {quotes.map((q) => (
+              {quotes.filter((q) => !q.is_featured).map((q) => (
                 <div
                   key={q.id}
                   data-testid={`quote-${q.id}`}
@@ -146,9 +180,16 @@ export default function AskMLS() {
                 >
                   <QuoteIcon className="absolute -top-2 -left-2 w-6 h-6 text-sage bg-paper p-1 rounded-full" strokeWidth={1.5} />
                   <p className="font-serif italic text-lg leading-snug">"{q.text}"</p>
-                  <p className="mt-3 font-mono text-[11px] tracking-[0.2em] uppercase text-inkMuted">
-                    — {q.attribution}
-                  </p>
+                  <div className="mt-3 flex items-center gap-2 flex-wrap">
+                    <p className="font-mono text-[11px] tracking-[0.2em] uppercase text-inkMuted">
+                      — {q.attribution}
+                    </p>
+                    {q.year_level && (
+                      <span className="font-mono text-[10px] tracking-[0.15em] uppercase px-2 py-0.5 rounded-full bg-sage-light border border-sage/30 text-sage-dark">
+                        {q.year_level}
+                      </span>
+                    )}
+                  </div>
                 </div>
               ))}
               {quotes.length === 0 && (

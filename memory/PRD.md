@@ -31,3 +31,10 @@ Clean, mobile-friendly student resource hub for BSMLS students. Editorial scient
 - **P2:** Content moderation / triage view for Ask MLS responses (once form responses are exported).
 - **P2:** Public "Upper-Year Contribution" form so upperclassmen can self-submit quotes for admin approval.
 - **P3:** Migrate FastAPI `@app.on_event` → lifespan handlers; split routers into modules.
+
+### Iteration 3
+- **Year-level tag** on quotes (2nd/3rd/4th Year). Optional.
+- **Featured quote**: admin pins one quote via Admin → Quotes → "Pin as featured". Shows as hero card at top of `/ask`. Only one at a time (enforced server-side).
+- **Announcement categories**: Academic / Event / Reminder. Filter chips on Home page.
+- **Pulse Sheet** published to web URL applied — chart now renders publicly on `/support`.
+- Testing agent: **100% pass** (11/11 iter3 backend + all frontend flows).

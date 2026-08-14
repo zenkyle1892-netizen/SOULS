@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Compass, BookOpen, HeartPulse, MessageCircleQuestion, ArrowUpRight, Plus, Megaphone } from "lucide-react";
 import { api } from "@/lib/api";
@@ -46,6 +46,13 @@ const QUICK_LINKS_FALLBACK = [
   { label: "Official School Website", url: "#", note: "" },
 ];
 
+const ANN_CATEGORIES = ["All", "Academic", "Event", "Reminder"];
+const CATEGORY_STYLES = {
+  Academic: "bg-sage-light text-sage-dark border-sage/30",
+  Event: "bg-terracotta-light text-terracotta-dark border-terracotta/30",
+  Reminder: "bg-paperAlt text-ink/70 border-ink/15",
+};
+
 function formatDate(d) {
   try {
     return new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
@@ -55,11 +62,17 @@ function formatDate(d) {
 export default function Home() {
   const [announcements, setAnnouncements] = useState([]);
   const [quickLinks, setQuickLinks] = useState(QUICK_LINKS_FALLBACK);
+  const [annFilter, setAnnFilter] = useState("All");
 
   useEffect(() => {
     api.get("/announcements").then((r) => setAnnouncements(r.data)).catch(() => {});
     api.get("/links", { params: { section: "quick" } }).then((r) => setQuickLinks(r.data)).catch(() => {});
   }, []);
+
+  const filteredAnnouncements = useMemo(() => {
+    if (annFilter === "All") return announcements;
+    return announcements.filter((a) => (a.category || "Reminder") === annFilter);
+  }, [announcements, annFilter]);
 
   return (
     <div>
@@ -219,7 +232,7 @@ export default function Home() {
       {announcements.length > 0 && (
         <section className="max-w-7xl mx-auto px-6 lg:px-10 pb-4" data-testid="announcements-section">
           <div className="border-t border-ink/10 pt-16">
-            <div className="flex items-end justify-between flex-wrap gap-4 mb-8">
+            <div className="flex items-end justify-between flex-wrap gap-4 mb-6">
               <div>
                 <p className="overline mb-3 flex items-center gap-2">
                   <Megaphone className="w-3.5 h-3.5" strokeWidth={1.75} />
@@ -234,27 +247,63 @@ export default function Home() {
               </p>
             </div>
 
+            {/* Filter chips */}
+            <div className="flex flex-wrap gap-2 mb-6" data-testid="ann-filter">
+              {ANN_CATEGORIES.map((c) => {
+                const active = annFilter === c;
+                return (
+                  <button
+                    key={c}
+                    onClick={() => setAnnFilter(c)}
+                    data-testid={`ann-filter-${c.toLowerCase()}`}
+                    className={`font-mono text-[11px] tracking-[0.18em] uppercase px-3 py-1.5 rounded-full border transition-colors ${
+                      active
+                        ? "bg-ink text-paper border-ink"
+                        : "border-ink/15 text-ink/70 hover:border-ink hover:text-ink"
+                    }`}
+                  >
+                    {c}
+                  </button>
+                );
+              })}
+            </div>
+
             <div className="space-y-3">
-              {announcements.slice(0, 5).map((a) => (
-                <article
-                  key={a.id}
-                  className="card-flat p-6 md:p-7 grid md:grid-cols-[160px_1fr] gap-4 md:gap-8"
-                  data-testid={`announcement-${a.id}`}
-                >
-                  <div>
-                    <p className="font-mono text-[11px] tracking-[0.18em] uppercase text-sage">
-                      {formatDate(a.date)}
-                    </p>
-                    <p className="mt-1 font-mono text-[10px] tracking-[0.15em] uppercase text-inkMuted">
-                      {a.source}
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="font-serif text-xl md:text-2xl tracking-tight mb-2">{a.title}</h3>
-                    <p className="text-sm text-inkMuted leading-relaxed">{a.body}</p>
-                  </div>
-                </article>
-              ))}
+              {filteredAnnouncements.slice(0, 8).map((a) => {
+                const cat = a.category || "Reminder";
+                const style = CATEGORY_STYLES[cat] || CATEGORY_STYLES.Reminder;
+                return (
+                  <article
+                    key={a.id}
+                    className="card-flat p-6 md:p-7 grid md:grid-cols-[160px_1fr] gap-4 md:gap-8"
+                    data-testid={`announcement-${a.id}`}
+                  >
+                    <div>
+                      <p className="font-mono text-[11px] tracking-[0.18em] uppercase text-sage">
+                        {formatDate(a.date)}
+                      </p>
+                      <p className="mt-1 font-mono text-[10px] tracking-[0.15em] uppercase text-inkMuted">
+                        {a.source}
+                      </p>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap mb-2">
+                        <span
+                          className={`font-mono text-[10px] tracking-[0.18em] uppercase px-2 py-0.5 border rounded-full ${style}`}
+                          data-testid={`ann-category-${a.id}`}
+                        >
+                          {cat}
+                        </span>
+                      </div>
+                      <h3 className="font-serif text-xl md:text-2xl tracking-tight mb-2">{a.title}</h3>
+                      <p className="text-sm text-inkMuted leading-relaxed">{a.body}</p>
+                    </div>
+                  </article>
+                );
+              })}
+              {filteredAnnouncements.length === 0 && (
+                <p className="text-sm text-inkMuted py-6">No announcements in this category yet.</p>
+              )}
             </div>
           </div>
         </section>
