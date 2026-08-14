@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-mongo_url = os.environ.get['MONGO_URL']
+mongo_url = os.environ.get['mongodb://zenkyle1892_db_user:KYLE2008150708@ac-ihppvoe-shard-00-00.1ngw0g9.mongodb.net:27017,ac-ihppvoe-shard-00-01.1ngw0g9.mongodb.net:27017,ac-ihppvoe-shard-00-02.1ngw0g9.mongodb.net:27017/?ssl=true&replicaSet=atlas-37svlr-shard-0&authSource=admin&appName=Cluster0']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
