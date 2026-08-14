@@ -4,10 +4,11 @@ import { Compass, Menu, X } from "lucide-react";
 
 const NAV = [
   { to: "/", label: "Home", testid: "nav-home" },
-  { to: "/roadmap", label: "First-Year Roadmap", testid: "nav-roadmap" },
-  { to: "/resources", label: "Resource Hub", testid: "nav-resources" },
-  { to: "/support", label: "Student Support", testid: "nav-support" },
+  { to: "/roadmap", label: "Roadmap", testid: "nav-roadmap" },
+  { to: "/resources", label: "Resources", testid: "nav-resources" },
+  { to: "/support", label: "Support", testid: "nav-support" },
   { to: "/ask", label: "Ask MLS", testid: "nav-ask" },
+  { to: "/gallery", label: "Gallery", testid: "nav-gallery" },
 ];
 
 export default function Layout({ children }) {

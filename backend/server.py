@@ -317,6 +317,69 @@ async def delete_link(link_id: str, _: bool = Depends(require_admin)):
     return {"ok": True}
 
 
+# --------- Photos ---------
+class Photo(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    image_url: str
+    caption: str = ""
+    submitter: str = ""
+    year: str = ""  # e.g. "Batch 2022" or "2019-2020"
+    order: int = 0
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+
+class PhotoCreate(BaseModel):
+    image_url: str
+    caption: str = ""
+    submitter: str = ""
+    year: str = ""
+    order: int = 0
+
+
+class PhotoUpdate(BaseModel):
+    image_url: Optional[str] = None
+    caption: Optional[str] = None
+    submitter: Optional[str] = None
+    year: Optional[str] = None
+    order: Optional[int] = None
+
+
+@api_router.get("/photos", response_model=List[Photo])
+async def list_photos():
+    docs = await db.photos.find({}, {"_id": 0}).to_list(500)
+    docs.sort(key=lambda d: (d.get("order", 0), d.get("created_at", "")))
+    return [Photo(**d) for d in docs]
+
+
+@api_router.post("/photos", response_model=Photo)
+async def create_photo(payload: PhotoCreate, _: bool = Depends(require_admin)):
+    p = Photo(**payload.model_dump())
+    await db.photos.insert_one(p.model_dump())
+    return p
+
+
+@api_router.put("/photos/{photo_id}", response_model=Photo)
+async def update_photo(photo_id: str, payload: PhotoUpdate, _: bool = Depends(require_admin)):
+    update = {k: v for k, v in payload.model_dump().items() if v is not None}
+    if not update:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    result = await db.photos.find_one_and_update(
+        {"id": photo_id}, {"$set": update}, return_document=True, projection={"_id": 0}
+    )
+    if not result:
+        raise HTTPException(status_code=404, detail="Photo not found")
+    return Photo(**result)
+
+
+@api_router.delete("/photos/{photo_id}")
+async def delete_photo(photo_id: str, _: bool = Depends(require_admin)):
+    res = await db.photos.delete_one({"id": photo_id})
+    if res.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Photo not found")
+    return {"ok": True}
+
+
 # --------- Settings (single doc, id="site") ---------
 class Settings(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -325,6 +388,7 @@ class Settings(BaseModel):
     check_in_form_url: str = ""
     pulse_sheet_url: str = ""
     contribution_form_url: str = ""
+    photo_form_url: str = ""
     org_name: str = "Society of United Medical Laboratory Science"
 
 
@@ -333,6 +397,7 @@ class SettingsUpdate(BaseModel):
     check_in_form_url: Optional[str] = None
     pulse_sheet_url: Optional[str] = None
     contribution_form_url: Optional[str] = None
+    photo_form_url: Optional[str] = None
     org_name: Optional[str] = None
 
 

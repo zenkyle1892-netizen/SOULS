@@ -30,6 +30,15 @@ export default function AskMLS() {
     api.get("/settings").then((r) => setSettings(r.data)).catch(() => {});
   }, []);
 
+  // Compute hero (manual pin > 3-day auto-rotation)
+  const heroQuote = (() => {
+    if (quotes.length === 0) return null;
+    const pinned = quotes.find((q) => q.is_featured);
+    if (pinned) return { ...pinned, _autoRotated: false };
+    const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24 * 3));
+    return { ...quotes[dayIndex % quotes.length], _autoRotated: true };
+  })();
+
   return (
     <div>
       {/* Hero */}
@@ -47,38 +56,35 @@ export default function AskMLS() {
             information or office.
           </p>
 
-          {/* Featured quote hero */}
-          {(() => {
-            const featured = quotes.find((q) => q.is_featured);
-            if (!featured) return null;
-            return (
-              <div
-                className="mt-14 relative bg-white border border-ink/10 rounded-3xl p-8 md:p-12 max-w-4xl grid md:grid-cols-[80px_1fr] gap-6 items-start"
-                data-testid="featured-quote"
-              >
-                <div className="hidden md:flex flex-col items-center gap-3">
-                  <span className="w-12 h-12 rounded-full bg-terracotta-light border border-terracotta/30 flex items-center justify-center text-terracotta-dark">
-                    <Star strokeWidth={1.75} className="w-5 h-5 fill-current" />
-                  </span>
-                  <span className="writing-vertical font-mono text-[10px] tracking-[0.2em] uppercase text-inkMuted rotate-180" style={{ writingMode: "vertical-rl" }}>
-                    Featured
-                  </span>
-                </div>
-                <div>
-                  <p className="md:hidden font-mono text-[10px] tracking-[0.24em] uppercase text-terracotta-dark mb-3 flex items-center gap-1.5">
-                    <Star className="w-3 h-3 fill-current" strokeWidth={1.75} /> Featured contribution
-                  </p>
-                  <p className="font-serif text-2xl md:text-3xl leading-snug italic">
-                    "{featured.text}"
-                  </p>
-                  <p className="mt-6 font-mono text-[11px] tracking-[0.2em] uppercase text-inkMuted">
-                    — {featured.attribution}
-                    {featured.year_level && <span className="text-sage"> · {featured.year_level}</span>}
-                  </p>
-                </div>
+          {/* Featured quote hero (manual pin, or 3-day auto-rotation fallback) */}
+          {heroQuote && (
+            <div
+              className="mt-14 relative bg-white border border-ink/10 rounded-3xl p-8 md:p-12 max-w-4xl grid md:grid-cols-[80px_1fr] gap-6 items-start"
+              data-testid="featured-quote"
+            >
+              <div className="hidden md:flex flex-col items-center gap-3">
+                <span className="w-12 h-12 rounded-full bg-sage-light border border-sage/40 flex items-center justify-center text-sage-dark">
+                  <Star strokeWidth={1.75} className="w-5 h-5 fill-current" />
+                </span>
+                <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-inkMuted rotate-180" style={{ writingMode: "vertical-rl" }}>
+                  {heroQuote._autoRotated ? "Rotating" : "Featured"}
+                </span>
               </div>
-            );
-          })()}
+              <div>
+                <p className="md:hidden font-mono text-[10px] tracking-[0.24em] uppercase text-sage-dark mb-3 flex items-center gap-1.5">
+                  <Star className="w-3 h-3 fill-current" strokeWidth={1.75} />
+                  {heroQuote._autoRotated ? "Quote of the week" : "Featured contribution"}
+                </p>
+                <p className="font-serif text-2xl md:text-3xl leading-snug italic">
+                  "{heroQuote.text}"
+                </p>
+                <p className="mt-6 font-mono text-[11px] tracking-[0.2em] uppercase text-inkMuted">
+                  — {heroQuote.attribution}
+                  {heroQuote.year_level && <span className="text-sage-dark"> · {heroQuote.year_level}</span>}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -172,7 +178,7 @@ export default function AskMLS() {
             </div>
 
             <div className="space-y-3">
-              {quotes.filter((q) => !q.is_featured).map((q) => (
+              {quotes.filter((q) => q.id !== heroQuote?.id).map((q) => (
                 <div
                   key={q.id}
                   data-testid={`quote-${q.id}`}

@@ -6,36 +6,36 @@
 
 @layer base {
     :root {
-        --background: 42 20% 97%;
-        --foreground: 60 2% 16%;
+        --background: 45 55% 96%;
+        --foreground: 0 0% 6%;
         --card: 0 0% 100%;
-        --card-foreground: 60 2% 16%;
+        --card-foreground: 0 0% 6%;
         --popover: 0 0% 100%;
-        --popover-foreground: 60 2% 16%;
-        --primary: 147 20% 46%;
-        --primary-foreground: 42 20% 97%;
-        --secondary: 39 21% 93%;
-        --secondary-foreground: 60 2% 16%;
-        --muted: 39 21% 93%;
-        --muted-foreground: 60 1% 36%;
-        --accent: 147 18% 92%;
-        --accent-foreground: 147 25% 26%;
-        --destructive: 12 50% 58%;
-        --destructive-foreground: 42 20% 97%;
-        --border: 60 2% 88%;
-        --input: 60 2% 88%;
-        --ring: 147 20% 46%;
+        --popover-foreground: 0 0% 6%;
+        --primary: 43 66% 46%;
+        --primary-foreground: 45 55% 96%;
+        --secondary: 44 42% 88%;
+        --secondary-foreground: 0 0% 6%;
+        --muted: 44 42% 92%;
+        --muted-foreground: 0 0% 32%;
+        --accent: 43 66% 92%;
+        --accent-foreground: 43 66% 26%;
+        --destructive: 0 62% 45%;
+        --destructive-foreground: 45 55% 96%;
+        --border: 0 0% 82%;
+        --input: 0 0% 82%;
+        --ring: 43 66% 46%;
         --radius: 1rem;
 
-        /* Custom brand tokens */
-        --paper: #F9F8F6;
-        --paper-alt: #F2EFE9;
-        --ink: #2A2B2A;
-        --ink-muted: #5C5D5C;
-        --sage: #5F8D76;
-        --sage-light: #E6EDE9;
-        --terracotta: #C87961;
-        --terracotta-light: #F7EBE8;
+        /* Custom brand tokens — Gold with Black accents */
+        --paper: #FCF8ED;
+        --paper-alt: #F3EBD1;
+        --ink: #0E0E0E;
+        --ink-muted: #4A4740;
+        --sage: #C9A227;         /* renamed conceptually: primary gold */
+        --sage-light: #F5EDCB;
+        --terracotta: #171717;   /* renamed conceptually: onyx black accent */
+        --terracotta-light: #EDE5CC;
     }
 }
 
@@ -82,8 +82,8 @@
     }
     .grid-paper {
         background-image:
-            linear-gradient(to right, rgba(42,43,42,0.05) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(42,43,42,0.05) 1px, transparent 1px);
+            linear-gradient(to right, rgba(14,14,14,0.045) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(14,14,14,0.045) 1px, transparent 1px);
         background-size: 32px 32px;
     }
     .grain::before {

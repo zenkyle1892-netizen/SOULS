@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Compass, BookOpen, HeartPulse, MessageCircleQuestion, ArrowUpRight, Plus, Megaphone } from "lucide-react";
+import { Compass, BookOpen, HeartPulse, MessageCircleQuestion, ArrowUpRight, Plus, Megaphone, Share2 } from "lucide-react";
 import { api } from "@/lib/api";
 
 const PATHWAYS = [
@@ -272,14 +272,26 @@ export default function Home() {
               {filteredAnnouncements.slice(0, 8).map((a) => {
                 const cat = a.category || "Reminder";
                 const style = CATEGORY_STYLES[cat] || CATEGORY_STYLES.Reminder;
+                const shareText = `${a.title}\n\n${a.body}\n\nSource: ${a.source}\nMLS Compass · ${window.location.origin}`;
+                const shareUrl = `${window.location.origin}/?a=${a.id}#announcement-${a.id}`;
+                const fbShare = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`;
+                const onCopy = async (e) => {
+                  e.preventDefault();
+                  try {
+                    await navigator.clipboard.writeText(shareText);
+                    e.currentTarget.dataset.copied = "1";
+                    setTimeout(() => { if (e.currentTarget) delete e.currentTarget.dataset.copied; }, 1500);
+                  } catch {}
+                };
                 return (
                   <article
                     key={a.id}
-                    className="card-flat p-6 md:p-7 grid md:grid-cols-[160px_1fr] gap-4 md:gap-8"
+                    id={`announcement-${a.id}`}
+                    className="card-flat p-6 md:p-7 grid md:grid-cols-[160px_1fr] gap-4 md:gap-8 scroll-mt-24"
                     data-testid={`announcement-${a.id}`}
                   >
                     <div>
-                      <p className="font-mono text-[11px] tracking-[0.18em] uppercase text-sage">
+                      <p className="font-mono text-[11px] tracking-[0.18em] uppercase text-sage-dark">
                         {formatDate(a.date)}
                       </p>
                       <p className="mt-1 font-mono text-[10px] tracking-[0.15em] uppercase text-inkMuted">
@@ -287,13 +299,34 @@ export default function Home() {
                       </p>
                     </div>
                     <div>
-                      <div className="flex items-center gap-2 flex-wrap mb-2">
+                      <div className="flex items-center justify-between gap-3 flex-wrap mb-2">
                         <span
                           className={`font-mono text-[10px] tracking-[0.18em] uppercase px-2 py-0.5 border rounded-full ${style}`}
                           data-testid={`ann-category-${a.id}`}
                         >
                           {cat}
                         </span>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={onCopy}
+                            data-testid={`ann-copy-${a.id}`}
+                            className="text-[10px] font-mono tracking-[0.15em] uppercase px-2.5 py-1 rounded-full border border-ink/10 hover:border-ink hover:bg-ink hover:text-paper transition-colors"
+                            title="Copy shareable text"
+                          >
+                            <span data-testid={`ann-copy-label-${a.id}`}>Copy</span>
+                          </button>
+                          <a
+                            href={fbShare}
+                            target="_blank"
+                            rel="noreferrer"
+                            data-testid={`ann-share-${a.id}`}
+                            className="inline-flex items-center gap-1 text-[10px] font-mono tracking-[0.15em] uppercase px-2.5 py-1 rounded-full border border-ink/10 hover:border-sage hover:bg-sage-light transition-colors"
+                            title="Share on Facebook"
+                          >
+                            <Share2 className="w-3 h-3" strokeWidth={1.75} />
+                            Share
+                          </a>
+                        </div>
                       </div>
                       <h3 className="font-serif text-xl md:text-2xl tracking-tight mb-2">{a.title}</h3>
                       <p className="text-sm text-inkMuted leading-relaxed">{a.body}</p>

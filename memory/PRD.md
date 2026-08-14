@@ -38,3 +38,17 @@ Clean, mobile-friendly student resource hub for BSMLS students. Editorial scient
 - **Announcement categories**: Academic / Event / Reminder. Filter chips on Home page.
 - **Pulse Sheet** published to web URL applied — chart now renders publicly on `/support`.
 - Testing agent: **100% pass** (11/11 iter3 backend + all frontend flows).
+
+### Iteration 4
+- ICTC email link (mailto:ictc@spcdavao.edu.ph) added to Quick + Useful Links.
+- Featured quote pre-pinned; 3-day auto-rotation fallback when nothing is pinned.
+- Facebook Share + Copy-to-clipboard buttons on Home announcement cards; OG meta tags for site-level share previews.
+- **Full theme swap → Gold + Black.** Warm ivory paper (#FCF8ED), rich gold accents (#C9A227), black CTA/borders. sage/terracotta token names retained but semantically remap to gold and onyx.
+- Testing agent: 100% pass across all 4 iterations (backend regression + frontend).
+
+### Iteration 5
+- **Gallery page** `/gallery` — masonry photo grid, lightbox, empty state, and Google Form submission section.
+- **Photos** admin tab — image URL + caption + submitter + year (batch) + order, with live preview.
+- `photo_form_url` added to site settings.
+- Nav expanded to 6 items (labels shortened to fit).
+- 3 sample photos seeded (Unsplash placeholders) — replaceable via admin.

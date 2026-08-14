@@ -9,6 +9,7 @@ import Roadmap from "@/pages/Roadmap";
 import Resources from "@/pages/Resources";
 import Support from "@/pages/Support";
 import AskMLS from "@/pages/AskMLS";
+import Gallery from "@/pages/Gallery";
 import Admin from "@/pages/Admin";
 
 function ScrollToTop() {
@@ -31,6 +32,7 @@ function App() {
             <Route path="/resources" element={<Resources />} />
             <Route path="/support" element={<Support />} />
             <Route path="/ask" element={<AskMLS />} />
+            <Route path="/gallery" element={<Gallery />} />
             <Route path="/admin" element={<Admin />} />
           </Routes>
         </Layout>

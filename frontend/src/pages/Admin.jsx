@@ -777,8 +777,172 @@ function LinkManager() {
   );
 }
 
+function PhotoManager() {
+  const [rows, setRows] = useState([]);
+  const [draft, setDraft] = useState({ image_url: "", caption: "", submitter: "", year: "", order: 0 });
+
+  const load = () => api.get("/photos").then((r) => setRows(r.data));
+  useEffect(() => { load(); }, []);
+
+  const create = async () => {
+    if (!draft.image_url) return toast.error("Image URL is required.");
+    try {
+      await api.post("/photos", draft, { headers: adminHeaders() });
+      toast.success("Photo added to the gallery.");
+      setDraft({ image_url: "", caption: "", submitter: "", year: "", order: 0 });
+      load();
+    } catch { toast.error("Failed to add photo."); }
+  };
+
+  const save = async (p) => {
+    try {
+      await api.put(`/photos/${p.id}`, {
+        image_url: p.image_url, caption: p.caption, submitter: p.submitter,
+        year: p.year, order: Number(p.order) || 0,
+      }, { headers: adminHeaders() });
+      toast.success("Saved.");
+      load();
+    } catch { toast.error("Save failed."); }
+  };
+
+  const remove = async (id) => {
+    if (!window.confirm("Delete this photo?")) return;
+    try {
+      await api.delete(`/photos/${id}`, { headers: adminHeaders() });
+      toast.success("Deleted.");
+      load();
+    } catch { toast.error("Delete failed."); }
+  };
+
+  return (
+    <div className="space-y-8">
+      <div className="card-flat p-6" data-testid="photo-create-card">
+        <h3 className="font-serif text-xl mb-4">Add a new photo</h3>
+        <p className="text-xs text-inkMuted mb-4">
+          Paste a direct image URL. For Google Drive: right-click the file → Share → Copy link, then use{" "}
+          <code className="font-mono">https://drive.google.com/uc?id=&lt;FILE_ID&gt;</code>. Facebook / Instagram images may block hotlinking; upload to a public host.
+        </p>
+        <Input
+          placeholder="Image URL (https://…)"
+          value={draft.image_url}
+          onChange={(e) => setDraft({ ...draft, image_url: e.target.value })}
+          data-testid="new-photo-url"
+        />
+        <div className="grid md:grid-cols-3 gap-3 mt-3">
+          <Input
+            placeholder="Submitter (e.g. Juan D., '22)"
+            value={draft.submitter}
+            onChange={(e) => setDraft({ ...draft, submitter: e.target.value })}
+            data-testid="new-photo-submitter"
+          />
+          <Input
+            placeholder="Year / Batch (e.g. Batch 2022)"
+            value={draft.year}
+            onChange={(e) => setDraft({ ...draft, year: e.target.value })}
+            data-testid="new-photo-year"
+          />
+          <Input
+            type="number"
+            placeholder="Order"
+            value={draft.order}
+            onChange={(e) => setDraft({ ...draft, order: Number(e.target.value) })}
+          />
+        </div>
+        <Textarea
+          className="mt-3"
+          rows={2}
+          placeholder="Caption (optional)"
+          value={draft.caption}
+          onChange={(e) => setDraft({ ...draft, caption: e.target.value })}
+          data-testid="new-photo-caption"
+        />
+
+        {draft.image_url && (
+          <div className="mt-4">
+            <p className="overline mb-2">Preview</p>
+            <div className="rounded-xl overflow-hidden border border-ink/10 bg-white max-w-sm">
+              <img
+                src={draft.image_url}
+                alt="Preview"
+                className="w-full h-auto block"
+                onError={(e) => { e.currentTarget.style.opacity = "0.2"; }}
+              />
+            </div>
+          </div>
+        )}
+
+        <Button className="mt-4" onClick={create} data-testid="create-photo-btn">
+          <Plus className="w-4 h-4 mr-1" /> Add to gallery
+        </Button>
+      </div>
+
+      <div className="space-y-3">
+        {rows.map((p, idx) => (
+          <div key={p.id} className="card-flat p-5" data-testid={`photo-row-${p.id}`}>
+            <div className="grid md:grid-cols-[160px_1fr] gap-4">
+              <div className="rounded-lg overflow-hidden border border-ink/10 bg-white aspect-square">
+                <img
+                  src={p.image_url}
+                  alt={p.caption || "photo"}
+                  className="w-full h-full object-cover"
+                  onError={(e) => { e.currentTarget.style.opacity = "0.2"; }}
+                />
+              </div>
+              <div>
+                <Input
+                  value={p.image_url}
+                  onChange={(e) => {
+                    const next = [...rows]; next[idx].image_url = e.target.value; setRows(next);
+                  }}
+                />
+                <div className="grid md:grid-cols-3 gap-3 mt-3">
+                  <Input
+                    value={p.submitter}
+                    onChange={(e) => {
+                      const next = [...rows]; next[idx].submitter = e.target.value; setRows(next);
+                    }}
+                  />
+                  <Input
+                    value={p.year}
+                    onChange={(e) => {
+                      const next = [...rows]; next[idx].year = e.target.value; setRows(next);
+                    }}
+                  />
+                  <Input
+                    type="number"
+                    value={p.order}
+                    onChange={(e) => {
+                      const next = [...rows]; next[idx].order = Number(e.target.value); setRows(next);
+                    }}
+                  />
+                </div>
+                <Textarea
+                  className="mt-3"
+                  rows={2}
+                  value={p.caption}
+                  onChange={(e) => {
+                    const next = [...rows]; next[idx].caption = e.target.value; setRows(next);
+                  }}
+                />
+                <div className="mt-3 flex gap-2">
+                  <Button size="sm" variant="secondary" onClick={() => save(p)} data-testid={`save-photo-${p.id}`}>
+                    <Save className="w-4 h-4 mr-1" /> Save
+                  </Button>
+                  <Button size="sm" variant="destructive" onClick={() => remove(p.id)} data-testid={`delete-photo-${p.id}`}>
+                    <Trash2 className="w-4 h-4 mr-1" /> Delete
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SettingsManager() {
-  const [s, setS] = useState({ ask_form_url: "", check_in_form_url: "", pulse_sheet_url: "", contribution_form_url: "", org_name: "" });
+  const [s, setS] = useState({ ask_form_url: "", check_in_form_url: "", pulse_sheet_url: "", contribution_form_url: "", photo_form_url: "", org_name: "" });
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -846,6 +1010,18 @@ function SettingsManager() {
       </div>
 
       <div>
+        <p className="text-sm font-medium mb-1">Photo Submission Form URL</p>
+        <p className="text-xs text-inkMuted mb-2">
+          Public form for seniors to submit old photos. Admins publish approved photos via the Photos tab.
+        </p>
+        <Input
+          value={s.photo_form_url}
+          onChange={(e) => setS({ ...s, photo_form_url: e.target.value })}
+          data-testid="setting-photo-form-url"
+        />
+      </div>
+
+      <div>
         <p className="text-sm font-medium mb-1">Organization name</p>
         <Input
           value={s.org_name}
@@ -905,6 +1081,7 @@ export default function Admin() {
             <TabsTrigger value="faqs" data-testid="tab-faqs">FAQs</TabsTrigger>
             <TabsTrigger value="quotes" data-testid="tab-quotes">Upper-Year Quotes</TabsTrigger>
             <TabsTrigger value="links" data-testid="tab-links">Links</TabsTrigger>
+            <TabsTrigger value="photos" data-testid="tab-photos">Photos</TabsTrigger>
             <TabsTrigger value="settings" data-testid="tab-settings">Settings</TabsTrigger>
           </TabsList>
           <TabsContent value="announcements" className="mt-6">
@@ -921,6 +1098,9 @@ export default function Admin() {
           </TabsContent>
           <TabsContent value="links" className="mt-6">
             <LinkManager />
+          </TabsContent>
+          <TabsContent value="photos" className="mt-6">
+            <PhotoManager />
           </TabsContent>
           <TabsContent value="settings" className="mt-6">
             <SettingsManager />
