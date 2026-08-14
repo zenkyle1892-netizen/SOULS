@@ -941,6 +941,223 @@ function PhotoManager() {
   );
 }
 
+function StoryManager() {
+  const [rows, setRows] = useState([]);
+  const [photos, setPhotos] = useState([]);
+  const [draft, setDraft] = useState({
+    title: "",
+    description: "",
+    year: "",
+    cover_image_url: "",
+    photo_ids: [],
+    order: 0,
+  });
+
+  const load = () => Promise.all([
+    api.get("/stories").then((r) => setRows(r.data)),
+    api.get("/photos").then((r) => setPhotos(r.data)),
+  ]);
+  useEffect(() => { load(); }, []);
+
+  const create = async () => {
+    if (!draft.title) return toast.error("Title is required.");
+    try {
+      await api.post("/stories", draft, { headers: adminHeaders() });
+      toast.success("Story created.");
+      setDraft({ title: "", description: "", year: "", cover_image_url: "", photo_ids: [], order: 0 });
+      load();
+    } catch { toast.error("Failed to create story."); }
+  };
+
+  const save = async (s) => {
+    try {
+      await api.put(`/stories/${s.id}`, {
+        title: s.title, description: s.description, year: s.year,
+        cover_image_url: s.cover_image_url, photo_ids: s.photo_ids, order: Number(s.order) || 0,
+      }, { headers: adminHeaders() });
+      toast.success("Saved.");
+      load();
+    } catch { toast.error("Save failed."); }
+  };
+
+  const remove = async (id) => {
+    if (!window.confirm("Delete this story? The photos themselves are not deleted.")) return;
+    try {
+      await api.delete(`/stories/${id}`, { headers: adminHeaders() });
+      toast.success("Deleted.");
+      load();
+    } catch { toast.error("Delete failed."); }
+  };
+
+  const togglePhoto = (setter, current, photoId) => {
+    const has = current.includes(photoId);
+    setter(has ? current.filter((id) => id !== photoId) : [...current, photoId]);
+  };
+
+  return (
+    <div className="space-y-8">
+      <div className="card-flat p-6" data-testid="story-create-card">
+        <h3 className="font-serif text-xl mb-2">Create a story</h3>
+        <p className="text-xs text-inkMuted mb-4">
+          Group 3–5 photos under a single title (e.g. "Sablay Day 2023"). Add
+          photos first via the Photos tab, then pick them here.
+        </p>
+
+        <div className="grid md:grid-cols-2 gap-3">
+          <Input
+            placeholder="Title (e.g. Sablay Day 2023)"
+            value={draft.title}
+            onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+            data-testid="new-story-title"
+          />
+          <Input
+            placeholder="Year / Batch (e.g. Batch 2023)"
+            value={draft.year}
+            onChange={(e) => setDraft({ ...draft, year: e.target.value })}
+            data-testid="new-story-year"
+          />
+        </div>
+        <Textarea
+          className="mt-3"
+          rows={2}
+          placeholder="Short description"
+          value={draft.description}
+          onChange={(e) => setDraft({ ...draft, description: e.target.value })}
+          data-testid="new-story-description"
+        />
+        <Input
+          className="mt-3"
+          placeholder="Cover image URL"
+          value={draft.cover_image_url}
+          onChange={(e) => setDraft({ ...draft, cover_image_url: e.target.value })}
+          data-testid="new-story-cover"
+        />
+        <Input
+          type="number"
+          className="mt-3 w-32"
+          placeholder="Order"
+          value={draft.order}
+          onChange={(e) => setDraft({ ...draft, order: Number(e.target.value) })}
+        />
+
+        <div className="mt-4">
+          <p className="overline mb-3">Pick photos ({draft.photo_ids.length} selected)</p>
+          {photos.length === 0 ? (
+            <p className="text-sm text-inkMuted">Add photos via the Photos tab first.</p>
+          ) : (
+            <div className="grid grid-cols-3 md:grid-cols-6 gap-2" data-testid="new-story-photo-picker">
+              {photos.map((p) => {
+                const picked = draft.photo_ids.includes(p.id);
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => togglePhoto((ids) => setDraft({ ...draft, photo_ids: ids }), draft.photo_ids, p.id)}
+                    className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                      picked ? "border-sage ring-2 ring-sage/30" : "border-transparent hover:border-ink/30"
+                    }`}
+                    data-testid={`story-photo-pick-${p.id}`}
+                  >
+                    <img src={p.image_url} alt={p.caption || ""} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.opacity = "0.2"; }} />
+                    {picked && (
+                      <span className="absolute top-1 right-1 w-6 h-6 rounded-full bg-sage text-white flex items-center justify-center font-mono text-[10px]">
+                        {draft.photo_ids.indexOf(p.id) + 1}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <Button className="mt-5" onClick={create} data-testid="create-story-btn">
+          <Plus className="w-4 h-4 mr-1" /> Create story
+        </Button>
+      </div>
+
+      <div className="space-y-3">
+        {rows.map((s, idx) => (
+          <div key={s.id} className="card-flat p-5" data-testid={`story-row-${s.id}`}>
+            <div className="grid md:grid-cols-2 gap-3">
+              <Input
+                value={s.title}
+                onChange={(e) => {
+                  const next = [...rows]; next[idx].title = e.target.value; setRows(next);
+                }}
+              />
+              <Input
+                value={s.year}
+                onChange={(e) => {
+                  const next = [...rows]; next[idx].year = e.target.value; setRows(next);
+                }}
+              />
+            </div>
+            <Textarea
+              className="mt-3"
+              rows={2}
+              value={s.description}
+              onChange={(e) => {
+                const next = [...rows]; next[idx].description = e.target.value; setRows(next);
+              }}
+            />
+            <Input
+              className="mt-3"
+              placeholder="Cover image URL"
+              value={s.cover_image_url}
+              onChange={(e) => {
+                const next = [...rows]; next[idx].cover_image_url = e.target.value; setRows(next);
+              }}
+            />
+
+            <div className="mt-4">
+              <p className="overline mb-2">Photos in story ({s.photo_ids?.length || 0})</p>
+              {photos.length === 0 ? (
+                <p className="text-sm text-inkMuted">No photos in the library.</p>
+              ) : (
+                <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                  {photos.map((p) => {
+                    const picked = (s.photo_ids || []).includes(p.id);
+                    return (
+                      <button
+                        key={p.id}
+                        onClick={() => {
+                          const next = [...rows];
+                          const ids = next[idx].photo_ids || [];
+                          next[idx].photo_ids = picked ? ids.filter((id) => id !== p.id) : [...ids, p.id];
+                          setRows(next);
+                        }}
+                        className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                          picked ? "border-sage ring-2 ring-sage/30" : "border-transparent hover:border-ink/30"
+                        }`}
+                      >
+                        <img src={p.image_url} alt={p.caption || ""} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.opacity = "0.2"; }} />
+                        {picked && (
+                          <span className="absolute top-1 right-1 w-6 h-6 rounded-full bg-sage text-white flex items-center justify-center font-mono text-[10px]">
+                            {(s.photo_ids || []).indexOf(p.id) + 1}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="mt-4 flex gap-2">
+              <Button size="sm" variant="secondary" onClick={() => save(s)} data-testid={`save-story-${s.id}`}>
+                <Save className="w-4 h-4 mr-1" /> Save
+              </Button>
+              <Button size="sm" variant="destructive" onClick={() => remove(s.id)} data-testid={`delete-story-${s.id}`}>
+                <Trash2 className="w-4 h-4 mr-1" /> Delete
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SettingsManager() {
   const [s, setS] = useState({ ask_form_url: "", check_in_form_url: "", pulse_sheet_url: "", contribution_form_url: "", photo_form_url: "", org_name: "" });
   const [loaded, setLoaded] = useState(false);
@@ -1082,6 +1299,7 @@ export default function Admin() {
             <TabsTrigger value="quotes" data-testid="tab-quotes">Upper-Year Quotes</TabsTrigger>
             <TabsTrigger value="links" data-testid="tab-links">Links</TabsTrigger>
             <TabsTrigger value="photos" data-testid="tab-photos">Photos</TabsTrigger>
+            <TabsTrigger value="stories" data-testid="tab-stories">Stories</TabsTrigger>
             <TabsTrigger value="settings" data-testid="tab-settings">Settings</TabsTrigger>
           </TabsList>
           <TabsContent value="announcements" className="mt-6">
@@ -1101,6 +1319,9 @@ export default function Admin() {
           </TabsContent>
           <TabsContent value="photos" className="mt-6">
             <PhotoManager />
+          </TabsContent>
+          <TabsContent value="stories" className="mt-6">
+            <StoryManager />
           </TabsContent>
           <TabsContent value="settings" className="mt-6">
             <SettingsManager />

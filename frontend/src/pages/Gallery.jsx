@@ -1,25 +1,60 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
-import { Camera, ArrowUpRight, X, ImagePlus } from "lucide-react";
+import { Camera, ArrowUpRight, X, ImagePlus, ChevronLeft, ChevronRight, BookOpen } from "lucide-react";
+
+function idsToPhotos(ids, allPhotos) {
+  const byId = Object.fromEntries(allPhotos.map((p) => [p.id, p]));
+  return (ids || []).map((id) => byId[id]).filter(Boolean);
+}
 
 export default function Gallery() {
   const [photos, setPhotos] = useState([]);
+  const [stories, setStories] = useState([]);
   const [settings, setSettings] = useState({ photo_form_url: "" });
-  const [active, setActive] = useState(null); // lightbox
+  const [active, setActive] = useState(null); // { list: [...photos], index: n }
   const [loaded, setLoaded] = useState(false);
+  const [batchFilter, setBatchFilter] = useState("All");
 
   useEffect(() => {
-    api.get("/photos").then((r) => setPhotos(r.data)).finally(() => setLoaded(true));
+    Promise.all([
+      api.get("/photos").then((r) => setPhotos(r.data)),
+      api.get("/stories").then((r) => setStories(r.data)),
+    ]).finally(() => setLoaded(true));
     api.get("/settings").then((r) => setSettings(r.data)).catch(() => {});
   }, []);
 
   useEffect(() => {
     const onKey = (e) => {
+      if (!active) return;
       if (e.key === "Escape") setActive(null);
+      if (e.key === "ArrowRight") setActive((a) => a && { ...a, index: (a.index + 1) % a.list.length });
+      if (e.key === "ArrowLeft") setActive((a) => a && { ...a, index: (a.index - 1 + a.list.length) % a.list.length });
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [active]);
+
+  const batches = useMemo(() => {
+    const set = new Set();
+    photos.forEach((p) => p.year && set.add(p.year));
+    stories.forEach((s) => s.year && set.add(s.year));
+    return Array.from(set).sort();
+  }, [photos, stories]);
+
+  const filteredPhotos = useMemo(() => {
+    if (batchFilter === "All") return photos;
+    return photos.filter((p) => (p.year || "") === batchFilter);
+  }, [photos, batchFilter]);
+
+  const filteredStories = useMemo(() => {
+    if (batchFilter === "All") return stories;
+    return stories.filter((s) => (s.year || "") === batchFilter);
+  }, [stories, batchFilter]);
+
+  const openLightbox = (list, index) => setActive({ list, index });
+  const activePhoto = active ? active.list[active.index] : null;
+
+  const showEmpty = loaded && filteredPhotos.length === 0 && filteredStories.length === 0;
 
   return (
     <div>
@@ -39,57 +74,160 @@ export default function Gallery() {
         </div>
       </section>
 
-      {/* Grid */}
+      {/* Batch filter */}
+      {batches.length > 0 && (
+        <div className="max-w-7xl mx-auto px-6 lg:px-10 pb-4" data-testid="batch-filter">
+          <div className="flex flex-wrap gap-2">
+            {["All", ...batches].map((b) => {
+              const activeChip = batchFilter === b;
+              return (
+                <button
+                  key={b}
+                  onClick={() => setBatchFilter(b)}
+                  data-testid={`batch-chip-${b.toLowerCase().replace(/\s+/g, "-")}`}
+                  className={`font-mono text-[11px] tracking-[0.18em] uppercase px-3 py-1.5 rounded-full border transition-colors ${
+                    activeChip
+                      ? "bg-ink text-paper border-ink"
+                      : "border-ink/15 text-ink/70 hover:border-ink hover:text-ink"
+                  }`}
+                >
+                  {b}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Stories */}
+      {filteredStories.length > 0 && (
+        <section className="max-w-7xl mx-auto px-6 lg:px-10 pb-8" data-testid="stories-section">
+          <p className="overline mb-6 flex items-center gap-2">
+            <BookOpen className="w-3.5 h-3.5" strokeWidth={1.75} />
+            Stories
+          </p>
+          <div className="space-y-6">
+            {filteredStories.map((s) => {
+              const storyPhotos = idsToPhotos(s.photo_ids, photos);
+              return (
+                <article key={s.id} className="card-flat overflow-hidden" data-testid={`story-${s.id}`}>
+                  <div className="grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+                    {s.cover_image_url && (
+                      <button
+                        onClick={() => storyPhotos.length > 0 ? openLightbox(storyPhotos, 0) : openLightbox([{ image_url: s.cover_image_url, caption: s.title, year: s.year }], 0)}
+                        className="relative overflow-hidden bg-white group"
+                        data-testid={`story-cover-${s.id}`}
+                      >
+                        <img
+                          src={s.cover_image_url}
+                          alt={s.title}
+                          loading="lazy"
+                          className="w-full h-full object-cover aspect-[4/3] md:aspect-auto md:min-h-[280px] group-hover:scale-[1.02] transition-transform duration-500"
+                          onError={(e) => { e.currentTarget.style.opacity = "0.2"; }}
+                        />
+                      </button>
+                    )}
+                    <div className="p-8 md:p-10 flex flex-col">
+                      {s.year && (
+                        <p className="font-mono text-[11px] tracking-[0.22em] uppercase text-sage-dark mb-3">
+                          {s.year}
+                        </p>
+                      )}
+                      <h3 className="font-serif text-2xl md:text-3xl tracking-tight mb-3">{s.title}</h3>
+                      {s.description && (
+                        <p className="text-sm text-inkMuted leading-relaxed">{s.description}</p>
+                      )}
+                      {storyPhotos.length > 0 && (
+                        <div className="mt-6 flex gap-2 overflow-x-auto pb-2">
+                          {storyPhotos.map((p, i) => (
+                            <button
+                              key={p.id}
+                              onClick={() => openLightbox(storyPhotos, i)}
+                              className="shrink-0 w-20 h-20 rounded-lg overflow-hidden border border-ink/10 hover:border-sage transition-colors"
+                              data-testid={`story-thumb-${s.id}-${i}`}
+                              aria-label={p.caption || `Photo ${i + 1}`}
+                            >
+                              <img
+                                src={p.image_url}
+                                alt={p.caption || ""}
+                                loading="lazy"
+                                className="w-full h-full object-cover"
+                                onError={(e) => { e.currentTarget.style.opacity = "0.2"; }}
+                              />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* Photos grid */}
       <section className="max-w-7xl mx-auto px-6 lg:px-10 pb-16" data-testid="gallery-grid-section">
-        {loaded && photos.length === 0 ? (
+        {showEmpty ? (
           <div className="card-flat p-12 flex flex-col items-center text-center max-w-2xl mx-auto" data-testid="gallery-empty">
             <span className="w-14 h-14 rounded-full bg-sage-light border border-sage/40 flex items-center justify-center text-sage-dark mb-5">
               <Camera strokeWidth={1.5} className="w-6 h-6" />
             </span>
-            <h2 className="font-serif text-2xl mb-2">No photos yet.</h2>
+            <h2 className="font-serif text-2xl mb-2">
+              {batchFilter === "All" ? "No photos yet." : `Nothing for ${batchFilter} yet.`}
+            </h2>
             <p className="text-sm text-inkMuted max-w-md">
-              Be the first to share a memory. Submit through the form below or
-              wait for an upperclassman to start the archive.
+              {batchFilter === "All"
+                ? "Be the first to share a memory. Submit through the form below."
+                : "Try another batch or share the first memory from this year."}
             </p>
           </div>
         ) : (
-          <div className="columns-1 sm:columns-2 lg:columns-3 gap-4" data-testid="gallery-grid">
-            {photos.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => setActive(p)}
-                className="mb-4 block w-full text-left break-inside-avoid group"
-                data-testid={`photo-${p.id}`}
-              >
-                <div className="relative overflow-hidden rounded-2xl border border-ink/10 bg-white">
-                  <img
-                    src={p.image_url}
-                    alt={p.caption || "MLS memory"}
-                    loading="lazy"
-                    className="w-full h-auto block group-hover:scale-[1.02] transition-transform duration-500"
-                    onError={(e) => { e.currentTarget.style.display = "none"; }}
-                  />
-                  {(p.caption || p.year || p.submitter) && (
-                    <div className="p-4 border-t border-ink/5">
-                      {p.year && (
-                        <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-sage-dark mb-1.5">
-                          {p.year}
-                        </p>
-                      )}
-                      {p.caption && (
-                        <p className="font-serif text-base italic leading-snug">"{p.caption}"</p>
-                      )}
-                      {p.submitter && (
-                        <p className="mt-2 font-mono text-[10px] tracking-[0.15em] uppercase text-inkMuted">
-                          — {p.submitter}
-                        </p>
+          filteredPhotos.length > 0 && (
+            <>
+              {filteredStories.length > 0 && (
+                <p className="overline mb-6">Individual photos</p>
+              )}
+              <div className="columns-1 sm:columns-2 lg:columns-3 gap-4" data-testid="gallery-grid">
+                {filteredPhotos.map((p, i) => (
+                  <button
+                    key={p.id}
+                    onClick={() => openLightbox(filteredPhotos, i)}
+                    className="mb-4 block w-full text-left break-inside-avoid group"
+                    data-testid={`photo-${p.id}`}
+                  >
+                    <div className="relative overflow-hidden rounded-2xl border border-ink/10 bg-white">
+                      <img
+                        src={p.image_url}
+                        alt={p.caption || "MLS memory"}
+                        loading="lazy"
+                        className="w-full h-auto block group-hover:scale-[1.02] transition-transform duration-500"
+                        onError={(e) => { e.currentTarget.style.opacity = "0.2"; }}
+                      />
+                      {(p.caption || p.year || p.submitter) && (
+                        <div className="p-4 border-t border-ink/5">
+                          {p.year && (
+                            <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-sage-dark mb-1.5">
+                              {p.year}
+                            </p>
+                          )}
+                          {p.caption && (
+                            <p className="font-serif text-base italic leading-snug">"{p.caption}"</p>
+                          )}
+                          {p.submitter && (
+                            <p className="mt-2 font-mono text-[10px] tracking-[0.15em] uppercase text-inkMuted">
+                              — {p.submitter}
+                            </p>
+                          )}
+                        </div>
                       )}
                     </div>
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
+                  </button>
+                ))}
+              </div>
+            </>
+          )
         )}
       </section>
 
@@ -125,7 +263,7 @@ export default function Gallery() {
                     title="Photo submission form"
                     src={settings.photo_form_url}
                     className="w-full"
-                    style={{ height: 850, border: 0 }}
+                    style={{ height: 900, border: 0 }}
                     data-testid="photo-form-iframe"
                   >
                     Loading…
@@ -149,7 +287,7 @@ export default function Gallery() {
       </section>
 
       {/* Lightbox */}
-      {active && (
+      {activePhoto && (
         <div
           role="dialog"
           className="fixed inset-0 z-50 bg-ink/90 backdrop-blur-sm flex items-center justify-center p-4 md:p-10"
@@ -164,33 +302,60 @@ export default function Gallery() {
           >
             <X className="w-5 h-5" strokeWidth={1.75} />
           </button>
+
+          {active.list.length > 1 && (
+            <>
+              <button
+                onClick={(e) => { e.stopPropagation(); setActive((a) => ({ ...a, index: (a.index - 1 + a.list.length) % a.list.length })); }}
+                className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-paper text-ink flex items-center justify-center hover:bg-sage-light transition-colors z-10"
+                data-testid="lightbox-prev"
+                aria-label="Previous"
+              >
+                <ChevronLeft className="w-5 h-5" strokeWidth={1.75} />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setActive((a) => ({ ...a, index: (a.index + 1) % a.list.length })); }}
+                className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-paper text-ink flex items-center justify-center hover:bg-sage-light transition-colors z-10"
+                data-testid="lightbox-next"
+                aria-label="Next"
+              >
+                <ChevronRight className="w-5 h-5" strokeWidth={1.75} />
+              </button>
+            </>
+          )}
+
           <div
             className="max-w-5xl w-full grid md:grid-cols-[1fr_320px] gap-4 items-center"
             onClick={(e) => e.stopPropagation()}
           >
             <img
-              src={active.image_url}
-              alt={active.caption || "MLS memory"}
+              src={activePhoto.image_url}
+              alt={activePhoto.caption || "MLS memory"}
               className="w-full max-h-[80vh] object-contain rounded-xl bg-white"
             />
             <div className="bg-paper text-ink rounded-xl p-6">
-              {active.year && (
+              {active.list.length > 1 && (
+                <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-inkMuted mb-3">
+                  {active.index + 1} / {active.list.length}
+                </p>
+              )}
+              {activePhoto.year && (
                 <p className="font-mono text-[11px] tracking-[0.22em] uppercase text-sage-dark mb-2">
-                  {active.year}
+                  {activePhoto.year}
                 </p>
               )}
-              {active.caption && (
+              {activePhoto.caption && (
                 <p className="font-serif text-xl italic leading-snug mb-4">
-                  "{active.caption}"
+                  "{activePhoto.caption}"
                 </p>
               )}
-              {active.submitter && (
+              {activePhoto.submitter && (
                 <p className="font-mono text-[11px] tracking-[0.2em] uppercase text-inkMuted">
-                  Submitted by {active.submitter}
+                  Submitted by {activePhoto.submitter}
                 </p>
               )}
               <a
-                href={active.image_url}
+                href={activePhoto.image_url}
                 target="_blank"
                 rel="noreferrer"
                 className="mt-6 inline-flex items-center gap-1.5 text-sm text-sage-dark hover:text-sage"

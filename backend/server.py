@@ -380,6 +380,72 @@ async def delete_photo(photo_id: str, _: bool = Depends(require_admin)):
     return {"ok": True}
 
 
+# --------- Photo Stories ---------
+class PhotoStory(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    description: str = ""
+    year: str = ""
+    cover_image_url: str = ""
+    photo_ids: List[str] = Field(default_factory=list)
+    order: int = 0
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+
+class PhotoStoryCreate(BaseModel):
+    title: str
+    description: str = ""
+    year: str = ""
+    cover_image_url: str = ""
+    photo_ids: List[str] = Field(default_factory=list)
+    order: int = 0
+
+
+class PhotoStoryUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    year: Optional[str] = None
+    cover_image_url: Optional[str] = None
+    photo_ids: Optional[List[str]] = None
+    order: Optional[int] = None
+
+
+@api_router.get("/stories", response_model=List[PhotoStory])
+async def list_stories():
+    docs = await db.stories.find({}, {"_id": 0}).to_list(500)
+    docs.sort(key=lambda d: (d.get("order", 0), d.get("created_at", "")))
+    return [PhotoStory(**d) for d in docs]
+
+
+@api_router.post("/stories", response_model=PhotoStory)
+async def create_story(payload: PhotoStoryCreate, _: bool = Depends(require_admin)):
+    s = PhotoStory(**payload.model_dump())
+    await db.stories.insert_one(s.model_dump())
+    return s
+
+
+@api_router.put("/stories/{story_id}", response_model=PhotoStory)
+async def update_story(story_id: str, payload: PhotoStoryUpdate, _: bool = Depends(require_admin)):
+    update = {k: v for k, v in payload.model_dump().items() if v is not None}
+    if not update:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    result = await db.stories.find_one_and_update(
+        {"id": story_id}, {"$set": update}, return_document=True, projection={"_id": 0}
+    )
+    if not result:
+        raise HTTPException(status_code=404, detail="Story not found")
+    return PhotoStory(**result)
+
+
+@api_router.delete("/stories/{story_id}")
+async def delete_story(story_id: str, _: bool = Depends(require_admin)):
+    res = await db.stories.delete_one({"id": story_id})
+    if res.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Story not found")
+    return {"ok": True}
+
+
 # --------- Settings (single doc, id="site") ---------
 class Settings(BaseModel):
     model_config = ConfigDict(extra="ignore")

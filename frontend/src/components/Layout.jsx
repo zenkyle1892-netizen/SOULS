@@ -105,6 +105,12 @@ export default function Layout({ children }) {
               <p className="text-sm text-inkMuted max-w-xs leading-relaxed">
                 Your guide to navigating Medical Laboratory Science.
               </p>
+              <p className="mt-4 font-mono text-[11px] tracking-[0.2em] uppercase text-sage-dark">
+                An initiative of SOULS
+              </p>
+              <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-inkMuted mt-0.5">
+                Society of United Medical Laboratory Scientists · San Pedro College
+              </p>
             </div>
             <div>
               <p className="overline mb-4">Navigate</p>

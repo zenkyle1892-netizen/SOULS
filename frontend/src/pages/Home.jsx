@@ -90,7 +90,7 @@ export default function Home() {
           <div className="grid lg:grid-cols-12 gap-12 items-end">
             <div className="lg:col-span-8">
               <p className="overline mb-6" data-testid="hero-overline">
-                A Student Companion · Est. 2026
+                An initiative of SOULS · San Pedro College
               </p>
               <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl leading-[0.98] tracking-tight">
                 Your guide to
@@ -100,9 +100,11 @@ export default function Home() {
                 <span className="italic text-sage">Medical Laboratory Science.</span>
               </h1>
               <p className="mt-8 text-lg text-inkMuted max-w-xl leading-relaxed">
-                Whether you're starting your first year or navigating the later
-                stages of MLS, MLS Compass provides practical resources,
-                guidance, and support to help you find your way.
+                Built by the <strong className="text-ink font-medium">Society of United Medical Laboratory Scientists</strong> for
+                every BSMLS student of San Pedro College. Whether you're
+                starting your first year or navigating the later stages, MLS
+                Compass provides practical resources, guidance, and support to
+                help you find your way.
               </p>
 
               <div className="mt-10 flex flex-wrap gap-3">
@@ -141,7 +143,7 @@ export default function Home() {
                 <div className="absolute inset-0 border-[10px] border-paper rounded-full pointer-events-none" />
               </div>
               <div className="absolute -bottom-4 -left-4 font-mono text-[10px] tracking-[0.2em] uppercase bg-paper border border-ink/10 px-3 py-1.5 rounded-full">
-                Slide No. 001
+                SOULS · SPC · No. 001
               </div>
             </div>
           </div>
@@ -219,10 +221,11 @@ export default function Home() {
           </div>
           <div className="lg:col-span-5 text-inkMuted text-base leading-relaxed">
             <p>
-              MLS Compass was created by students for students — to make
-              information easier to find, questions easier to ask, and support
-              easier to reach. It doesn't replace your school offices; it points
-              you toward them.
+              MLS Compass is a <strong className="text-ink font-medium">SOULS initiative</strong> — built by
+              San Pedro College MLS students, for MLS students. It's here to
+              make information easier to find, questions easier to ask, and
+              support easier to reach. It doesn't replace your school offices;
+              it points you toward them.
             </p>
           </div>
         </div>
