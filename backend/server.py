@@ -557,6 +557,64 @@ async def analytics_summary(_: bool = Depends(require_admin)):
     }
 
 
+@api_router.get("/analytics/export")
+async def analytics_export(days: int = 30, _: bool = Depends(require_admin)):
+    from collections import Counter, defaultdict
+    from datetime import timedelta
+    from fastapi.responses import Response
+    import io, csv
+
+    days = max(1, min(days, 365))
+    today = datetime.now(timezone.utc).date()
+    cutoff = today - timedelta(days=days - 1)
+    cutoff_iso = cutoff.isoformat()
+
+    docs = await db.visits.find(
+        {"timestamp": {"$gte": cutoff_iso}}, {"_id": 0}
+    ).to_list(50000)
+
+    total = len(docs)
+    unique_sessions = len({d.get("session_id", "") for d in docs if d.get("session_id")})
+
+    # Daily buckets
+    day_visits = {(cutoff + timedelta(days=i)).isoformat(): 0 for i in range(days)}
+    day_uniques = defaultdict(set)
+    for d in docs:
+        day = d.get("timestamp", "")[:10]
+        if day in day_visits:
+            day_visits[day] += 1
+            day_uniques[day].add(d.get("session_id", ""))
+
+    # Per-page
+    path_counts = Counter(d.get("path", "/") for d in docs)
+
+    # Build CSV
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow(["MLS Compass · Analytics Export"])
+    w.writerow(["Generated (UTC)", datetime.now(timezone.utc).isoformat()])
+    w.writerow(["Window (days)", days])
+    w.writerow(["Total visits", total])
+    w.writerow(["Unique visitors", unique_sessions])
+    w.writerow([])
+    w.writerow(["Daily breakdown"])
+    w.writerow(["Date", "Visits", "Unique visitors"])
+    for day, count in day_visits.items():
+        w.writerow([day, count, len(day_uniques[day])])
+    w.writerow([])
+    w.writerow(["Visits by page"])
+    w.writerow(["Path", "Visits"])
+    for path, count in sorted(path_counts.items(), key=lambda kv: -kv[1]):
+        w.writerow([path, count])
+
+    filename = f"mls-compass-analytics-{today.isoformat()}-{days}d.csv"
+    return Response(
+        content=buf.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
 # --------- Settings (single doc, id="site") ---------
 class Settings(BaseModel):
     model_config = ConfigDict(extra="ignore")

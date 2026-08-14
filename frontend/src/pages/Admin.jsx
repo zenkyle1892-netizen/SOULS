@@ -1300,6 +1300,7 @@ function OfficerManager() {
 function AnalyticsView() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -1309,6 +1310,32 @@ function AnalyticsView() {
   };
   useEffect(() => { load(); }, []);
 
+  const downloadCSV = async () => {
+    setDownloading(true);
+    try {
+      const res = await api.get("/analytics/export", {
+        params: { days: 30 },
+        headers: adminHeaders(),
+        responseType: "blob",
+      });
+      const blob = new Blob([res.data], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const today = new Date().toISOString().slice(0, 10);
+      a.download = `mls-compass-analytics-${today}-30d.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast.success("CSV downloaded.");
+    } catch {
+      toast.error("Download failed.");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   if (loading || !data) return <p className="text-sm text-inkMuted">Loading analytics…</p>;
 
   const maxDay = Math.max(1, ...data.last_7_days.map((d) => d.count));
@@ -1316,6 +1343,21 @@ function AnalyticsView() {
 
   return (
     <div className="space-y-8" data-testid="analytics-view">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-inkMuted">
+          Privacy-friendly · anonymous session IDs, no cookies, no third-party trackers.
+        </p>
+        <Button
+          onClick={downloadCSV}
+          disabled={downloading}
+          data-testid="download-csv-btn"
+          variant="secondary"
+        >
+          <Save className="w-4 h-4 mr-1.5" />
+          {downloading ? "Preparing…" : "Download last 30 days (CSV)"}
+        </Button>
+      </div>
+
       <div className="grid md:grid-cols-2 gap-4">
         <div className="card-flat p-6" data-testid="stat-total">
           <p className="overline mb-3">Total visits</p>
