@@ -1,0 +1,145 @@
+{
+  "project_name": "MLS Compass",
+  "theme": "Editorial Scientific",
+  "emotional_impression": "I don't know what to do yet—but I know where to start. Welcoming, organized, scholarly but warm. Not an official hospital site.",
+  "typography": {
+    "fonts": [
+      {
+        "role": "Headings (Editorial Serif)",
+        "family": "Spectral",
+        "fallback": "serif",
+        "usage": "H1, H2, large quotes. Conveys scholarly trust and scientific journaling.",
+        "import_url": "https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap"
+      },
+      {
+        "role": "Body & UI (Clean Sans)",
+        "family": "IBM Plex Sans",
+        "fallback": "sans-serif",
+        "usage": "Paragraphs, standard buttons, form inputs. Highly legible, subtle technical feel.",
+        "import_url": "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      },
+      {
+        "role": "Accents & Data (Mono)",
+        "family": "IBM Plex Mono",
+        "fallback": "monospace",
+        "usage": "Tags, dates, breadcrumbs, 'Step 01' indicators, small caps overlines. Enhances the laboratory/scientific vibe.",
+        "import_url": "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap"
+      }
+    ],
+    "hierarchy": {
+      "h1": "text-5xl md:text-6xl font-serif tracking-tight leading-none",
+      "h2": "text-3xl md:text-4xl font-serif tracking-tight",
+      "h3": "text-xl md:text-2xl font-serif",
+      "body": "text-base font-sans leading-relaxed text-ink/80",
+      "overline": "text-xs font-mono uppercase tracking-[0.2em] text-sage-600"
+    }
+  },
+  "colors": {
+    "palette_name": "Warm Scholarly Paper & Microscope Lens",
+    "theme_preference": "Light mode default. Academic ink-and-paper feel.",
+    "background": {
+      "base": "#F9F8F6",
+      "surface": "#FFFFFF",
+      "surface_alt": "#F2EFE9"
+    },
+    "text": {
+      "ink": "#2A2B2A",
+      "ink_muted": "#5C5D5C"
+    },
+    "accents": {
+      "sage": "#5F8D76",
+      "sage_light": "#E6EDE9",
+      "terracotta": "#C87961",
+      "terracotta_light": "#F7EBE8"
+    },
+    "rules": [
+      "NO purple/violet gradients. NO generic tech-blue.",
+      "NO stark #000000 black, use the warm ink (#2A2B2A).",
+      "Use sage as the primary interactive/brand color.",
+      "Use terracotta for warnings, highlights, or the 'I need support' pathway to draw attention."
+    ]
+  },
+  "visual_enhancers": {
+    "motifs": [
+      "Graph Paper/Hemocytometer Grid: Use subtle 1px border grids (`border-ink/10`) in hero and bento backgrounds.",
+      "Crosshairs: Use '+' icons at the intersections of grid lines to mimic microscope reticles.",
+      "Lens Cutouts: Use perfect circles or pill shapes (`rounded-full`) for image masks or icon containers to evoke looking through a lens.",
+      "Compass/Navigation: Use subtle directional arrows or a minimalist compass rose as watermarks."
+    ],
+    "cards": "Flat surfaces with 1px border (`border-ink/10`), no heavy drop shadows. `rounded-2xl` for friendliness. On hover, translate up slightly and change border color to Sage or Terracotta.",
+    "icons": "Use `lucide-react` with `strokeWidth={1.5}`. Key icons: Compass, Microscope, TestTube, BookOpen, HeartPulse."
+  },
+  "layouts_and_blueprints": {
+    "Home": {
+      "hero": "Asymmetrical layout. Large serif 'MLS COMPASS'. Subtitle in sans. Background features a faint grid and a circular 'lens' revealing a lab image.",
+      "pathways": "Bento grid of 4 cards (I'm New to MLS, I Need Resources, I Need Support, I Have a Question). Each gets a distinct mono index (01, 02...) and a dedicated icon.",
+      "quick_links": "Clean horizontal list or editorial scrolling marquee (`react-fast-marquee`)."
+    },
+    "First-Year Roadmap": {
+      "layout": "Vertical timeline. Instead of standard dots, use stylized 'cell division' nodes or chemical bond lines. 5 distinct stages.",
+      "stages": "Use Shadcn accordion for 'Common Freshman Questions' at the bottom of the timeline."
+    },
+    "Resource Hub": {
+      "layout": "Categorized bento grids. Sticky sidebar for categories (Academic, Lab, Student Documents, Student Life, Useful Links) with smooth scroll to sections.",
+      "cards": "Cards have a technical 'document' feel with mono-font tags."
+    },
+    "Student Support": {
+      "layout": "Warmest page on the site. Use more Terracotta accents.",
+      "components": "'Are We Okay?' section is a prominent card featuring the embedded Google Form placeholder. Official support links should look authoritative but not intimidating."
+    },
+    "Ask MLS": {
+      "layout": "Two-column split. Left: Large serif quote and submission form. Right: 'Things I Wish I Knew Before MLS' quote cards styled like physical flashcards or lab notes."
+    },
+    "Admin Panel": {
+      "layout": "Clean, high-density dashboard. Table view for FAQs and Quotes. Use Shadcn datatable. Keep it strictly functional."
+    }
+  },
+  "components_and_libraries": {
+    "ui_library": "shadcn/ui primitives. Customize heavily: remove default card shadows, use flat borders.",
+    "motion": "framer-motion for page transitions and card hovers. lenis for smooth scrolling (crucial for editorial feel).",
+    "forms": "Embed Google Forms using `<iframe src='...'>` inside stylized Shadcn Card wrappers to hide the clunky Google styling where possible.",
+    "toast": "sonner for admin actions."
+  },
+  "image_urls": [
+    {
+      "url": "https://images.unsplash.com/photo-1707944746058-4da338d0f827?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2OTV8MHwxfHNlYXJjaHwzfHxzY2llbmNlJTIwbGFib3JhdG9yeSUyMHN0dWRlbnRzJTIwd2FybXRofGVufDB8fHx8MTc4NjY5ODk4OHww&ixlib=rb-4.1.0&q=85",
+      "category": "Hero / Lab Life",
+      "description": "Group of students in lab coats. Warm lighting, relatable. Use in Home Hero or Resource Hub."
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1576086476234-1103be98f096?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTJ8MHwxfHNlYXJjaHwzfHxhYnN0cmFjdCUyMG1pY3Jvc2NvcGljJTIwY2VsbCUyMHdhcm18ZW58MHx8fHwxNzg2Njk4OTg4fDA&ixlib=rb-4.1.0&q=85",
+      "category": "Abstract Motif",
+      "description": "Green abstract cellular structure. Use as a subtle background texture (low opacity) behind cards or hero."
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1784359065403-93da31c36115?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA4Mzl8MHwxfHNlYXJjaHwzfHxjb2xsZWdlJTIwc3R1ZGVudHMlMjBzdHVkeWluZyUyMHRvZ2V0aGVyJTIwbGlicmFyeXxlbnwwfHx8fDE3ODY2OTg5ODh8MA&ixlib=rb-4.1.0&q=85",
+      "category": "Student Life / Adjustment",
+      "description": "Students studying in library. Good for Resource Hub or First-Year roadmap."
+    }
+  ],
+  "accessibility_and_testing": {
+    "contrast": "Ensure minimum 4.5:1 ratio. The warm ink (#2A2B2A) on base background (#F9F8F6) exceeds this easily.",
+    "testing": "CRITICAL: All interactive elements MUST have `data-testid` attributes (e.g., `data-testid=\"nav-home-link\"`, `data-testid=\"faq-accordion-trigger\"`)."
+  },
+  "instructions_to_main_agent": [
+    "Use JavaScript (.js/.jsx), NOT TypeScript (.tsx) for React components.",
+    "Do NOT use HTML components for dropdowns, date pickers, or complex interactions; rely strictly on Shadcn UI.",
+    "Do NOT center-align the main app container in CSS. Left-align text by default, center only for specific visual rhythm in hero/headers.",
+    "Avoid generic 'AI slop' gradients or emojis. Use Phosphor or Lucide icons only.",
+    "Use generous spacing (p-8 to p-16) to achieve the editorial magazine look.",
+    "For the header, use a semi-solid or glassmorphism background (`backdrop-blur-md bg-white/80`). NEVER leave the header completely transparent over scrolling content.",
+    "Mock the Google Form embeds using generic `<iframe src='...'>` blocks within nicely styled cards.",
+    "Implement light mode as the default. This is an academic site, so 'paper' white is ideal."
+  ],
+  "universal_guidelines_for_main_agent": [
+    "Avoid generic, 'on distribution' outputs (no AI slop).",
+    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy and glass-morphism.",
+    "MUST NOT apply universal transitions (e.g., `transition: all`). Target specific properties.",
+    "Every interaction needs micro-animations - hover states, transitions.",
+    "Use 2-3x more spacing than feels comfortable.",
+    "Use subtle grain textures and custom cursors if applicable.",
+    "Do NOT use placeholder image URLs (via.placeholder.com). Use only provided unsplash links.",
+    "Include `data-testid` on all buttons, links, inputs, and major UI components."
+  ]
+}

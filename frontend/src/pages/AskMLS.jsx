@@ -1,0 +1,182 @@
+import { useEffect, useState } from "react";
+import { api } from "@/lib/api";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { ArrowUpRight, MessageSquare, Quote as QuoteIcon } from "lucide-react";
+
+const CATEGORIES = [
+  "Academic",
+  "Laboratory",
+  "Announcements",
+  "Schedule / Requirements",
+  "Student Concerns",
+  "Well-being",
+  "Suggestions",
+  "General Question",
+];
+
+export default function AskMLS() {
+  const [faqs, setFaqs] = useState([]);
+  const [quotes, setQuotes] = useState([]);
+  const [settings, setSettings] = useState({ ask_form_url: "" });
+
+  useEffect(() => {
+    api.get("/faqs", { params: { page: "ask-mls" } }).then((r) => setFaqs(r.data));
+    api.get("/quotes").then((r) => setQuotes(r.data));
+    api.get("/settings").then((r) => setSettings(r.data)).catch(() => {});
+  }, []);
+
+  return (
+    <div>
+      {/* Hero */}
+      <section className="relative overflow-hidden" data-testid="ask-hero">
+        <div className="absolute inset-0 grid-paper opacity-50 pointer-events-none" />
+        <div className="max-w-7xl mx-auto px-6 lg:px-10 pt-20 pb-16 relative">
+          <p className="overline mb-6">§ Chapter Four</p>
+          <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl tracking-tight leading-[1] max-w-4xl">
+            Ask MLS. <span className="italic text-sage">No question is too small.</span>
+          </h1>
+          <p className="mt-6 text-lg text-inkMuted max-w-2xl leading-relaxed">
+            Have a question, concern, or suggestion? You don't need to know
+            exactly who to approach. Submit it here and the student
+            representatives will help direct you toward the appropriate
+            information or office.
+          </p>
+        </div>
+      </section>
+
+      {/* Submit + Upper Years */}
+      <section className="max-w-7xl mx-auto px-6 lg:px-10 pb-16" data-testid="ask-body">
+        <div className="grid lg:grid-cols-12 gap-8">
+          {/* Left: Submit */}
+          <div className="lg:col-span-7">
+            <div className="card-flat p-8 md:p-10">
+              <p className="overline mb-4">§ Submit</p>
+              <h2 className="font-serif text-3xl md:text-4xl tracking-tight mb-6">
+                Submit a question.
+              </h2>
+              <p className="text-inkMuted leading-relaxed mb-6">
+                A Google Form will be embedded here. Until then, tap the button
+                to open the form in a new tab.
+              </p>
+
+              <a
+                href={settings.ask_form_url || "#"}
+                target="_blank"
+                rel="noreferrer"
+                data-testid="submit-cta"
+                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full text-sm tracking-wide bg-ink text-paper hover:bg-black transition-colors"
+              >
+                <MessageSquare className="w-4 h-4" strokeWidth={1.75} />
+                Open in new tab
+                <ArrowUpRight className="w-4 h-4" strokeWidth={1.75} />
+              </a>
+
+              <div className="mt-8">
+                <p className="overline mb-3">Categories</p>
+                <div className="flex flex-wrap gap-2">
+                  {CATEGORIES.map((c) => (
+                    <span
+                      key={c}
+                      data-testid={`category-${c.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+                      className="font-mono text-[11px] tracking-[0.15em] uppercase px-3 py-1.5 border border-ink/15 rounded-full text-ink/80"
+                    >
+                      {c}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-8 rounded-xl overflow-hidden border border-ink/10 bg-white">
+                {settings.ask_form_url ? (
+                  <iframe
+                    title="Ask MLS submission form"
+                    src={settings.ask_form_url}
+                    className="w-full"
+                    style={{ height: 900, border: 0 }}
+                    data-testid="ask-form-iframe"
+                  >
+                    Loading…
+                  </iframe>
+                ) : (
+                  <div className="border border-dashed border-ink/20 rounded-xl p-6 flex items-center justify-center min-h-[220px] m-2">
+                    <div className="text-center">
+                      <p className="font-mono text-xs uppercase tracking-[0.2em] text-inkMuted">Google Form Embed</p>
+                      <p className="mt-2 text-sm text-inkMuted max-w-xs">
+                        Set the form URL in the admin panel (Settings → Ask MLS Form).
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Upper Year Quotes */}
+          <div className="lg:col-span-5">
+            <div className="mb-6">
+              <p className="overline mb-3">§ From the Upper Years</p>
+              <h2 className="font-serif text-3xl md:text-4xl tracking-tight">
+                Things I <span className="italic">wish</span> I knew before MLS.
+              </h2>
+              <p className="mt-3 text-sm text-inkMuted leading-relaxed max-w-md">
+                Short pieces of advice from those a few semesters ahead. No
+                long-term commitment required — just one piece of wisdom.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              {quotes.map((q) => (
+                <div
+                  key={q.id}
+                  data-testid={`quote-${q.id}`}
+                  className="card-flat p-6 relative"
+                >
+                  <QuoteIcon className="absolute -top-2 -left-2 w-6 h-6 text-sage bg-paper p-1 rounded-full" strokeWidth={1.5} />
+                  <p className="font-serif italic text-lg leading-snug">"{q.text}"</p>
+                  <p className="mt-3 font-mono text-[11px] tracking-[0.2em] uppercase text-inkMuted">
+                    — {q.attribution}
+                  </p>
+                </div>
+              ))}
+              {quotes.length === 0 && (
+                <p className="text-sm text-inkMuted">Loading quotes…</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="max-w-7xl mx-auto px-6 lg:px-10 pb-24" data-testid="ask-faq-section">
+        <div className="border-t border-ink/10 pt-16">
+          <p className="overline mb-4">§ FAQ</p>
+          <h2 className="font-serif text-3xl md:text-4xl tracking-tight mb-8">
+            Frequently asked questions.
+          </h2>
+
+          <Accordion type="single" collapsible className="card-flat p-2 md:p-4" data-testid="ask-faq">
+            {faqs.map((f) => (
+              <AccordionItem key={f.id} value={f.id} className="border-b border-ink/10 last:border-b-0">
+                <AccordionTrigger
+                  className="text-left font-serif text-lg px-4 hover:no-underline hover:text-sage"
+                  data-testid={`ask-faq-trigger-${f.id}`}
+                >
+                  {f.question}
+                </AccordionTrigger>
+                <AccordionContent className="px-4 pb-5 text-inkMuted leading-relaxed">
+                  {f.answer}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+            {faqs.length === 0 && <p className="p-6 text-sm text-inkMuted">Loading…</p>}
+          </Accordion>
+        </div>
+      </section>
+    </div>
+  );
+}
