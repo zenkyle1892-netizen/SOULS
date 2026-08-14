@@ -574,7 +574,7 @@ function LinkManager() {
 }
 
 function SettingsManager() {
-  const [s, setS] = useState({ ask_form_url: "", check_in_form_url: "", pulse_sheet_url: "", org_name: "" });
+  const [s, setS] = useState({ ask_form_url: "", check_in_form_url: "", pulse_sheet_url: "", contribution_form_url: "", org_name: "" });
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -626,6 +626,18 @@ function SettingsManager() {
           value={s.pulse_sheet_url}
           onChange={(e) => setS({ ...s, pulse_sheet_url: e.target.value })}
           data-testid="setting-pulse-url"
+        />
+      </div>
+
+      <div>
+        <p className="text-sm font-medium mb-1">Upper-Year Contribution Form URL</p>
+        <p className="text-xs text-inkMuted mb-2">
+          Public form where upperclassmen submit their "wish I knew" quotes. Admins approve manually via the Quotes tab.
+        </p>
+        <Input
+          value={s.contribution_form_url}
+          onChange={(e) => setS({ ...s, contribution_form_url: e.target.value })}
+          data-testid="setting-contribution-form-url"
         />
       </div>
 

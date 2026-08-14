@@ -22,7 +22,7 @@ const CATEGORIES = [
 export default function AskMLS() {
   const [faqs, setFaqs] = useState([]);
   const [quotes, setQuotes] = useState([]);
-  const [settings, setSettings] = useState({ ask_form_url: "" });
+  const [settings, setSettings] = useState({ ask_form_url: "", contribution_form_url: "" });
 
   useEffect(() => {
     api.get("/faqs", { params: { page: "ask-mls" } }).then((r) => setFaqs(r.data));
@@ -145,6 +145,50 @@ export default function AskMLS() {
               ))}
               {quotes.length === 0 && (
                 <p className="text-sm text-inkMuted">Loading quotes…</p>
+              )}
+            </div>
+
+            {/* Contribution form */}
+            <div className="mt-8 card-flat p-6" data-testid="contribution-section">
+              <p className="overline mb-3">§ Contribute</p>
+              <h3 className="font-serif text-2xl tracking-tight mb-2">
+                Share one thing you wish you knew.
+              </h3>
+              <p className="text-sm text-inkMuted leading-relaxed mb-4">
+                No long-term commitment. Submit one short piece of wisdom —
+                student officers review submissions and publish approved ones
+                as quote cards above.
+              </p>
+              {settings.contribution_form_url ? (
+                <>
+                  <a
+                    href={settings.contribution_form_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    data-testid="contribution-cta"
+                    className="inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm tracking-wide bg-sage text-white hover:bg-sage-dark transition-colors"
+                  >
+                    Contribute wisdom
+                    <ArrowUpRight className="w-4 h-4" strokeWidth={1.75} />
+                  </a>
+                  <div className="mt-6 rounded-xl overflow-hidden border border-ink/10 bg-white">
+                    <iframe
+                      title="Upper-Year contribution form"
+                      src={settings.contribution_form_url}
+                      className="w-full"
+                      style={{ height: 800, border: 0 }}
+                      data-testid="contribution-iframe"
+                    >
+                      Loading…
+                    </iframe>
+                  </div>
+                </>
+              ) : (
+                <div className="border border-dashed border-ink/20 rounded-xl p-6 flex items-center justify-center min-h-[120px]">
+                  <p className="text-sm text-inkMuted text-center max-w-xs">
+                    Contribution form coming soon — admin can enable it in Settings.
+                  </p>
+                </div>
               )}
             </div>
           </div>

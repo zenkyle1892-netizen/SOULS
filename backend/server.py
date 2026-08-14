@@ -297,6 +297,7 @@ class Settings(BaseModel):
     ask_form_url: str = ""
     check_in_form_url: str = ""
     pulse_sheet_url: str = ""
+    contribution_form_url: str = ""
     org_name: str = "Society of United Medical Laboratory Science"
 
 
@@ -304,6 +305,7 @@ class SettingsUpdate(BaseModel):
     ask_form_url: Optional[str] = None
     check_in_form_url: Optional[str] = None
     pulse_sheet_url: Optional[str] = None
+    contribution_form_url: Optional[str] = None
     org_name: Optional[str] = None
 
 
