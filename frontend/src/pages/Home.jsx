@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Compass, BookOpen, HeartPulse, MessageCircleQuestion, ArrowUpRight, Plus, Megaphone, Share2, Facebook } from "lucide-react";
+import { Compass, BookOpen, HeartPulse, MessageCircleQuestion, ArrowUpRight, Plus, Megaphone, Share2, Facebook, Users } from "lucide-react";
 import { api } from "@/lib/api";
 
 const PATHWAYS = [
@@ -62,11 +62,13 @@ function formatDate(d) {
 export default function Home() {
   const [announcements, setAnnouncements] = useState([]);
   const [quickLinks, setQuickLinks] = useState(QUICK_LINKS_FALLBACK);
+  const [officers, setOfficers] = useState([]);
   const [annFilter, setAnnFilter] = useState("All");
 
   useEffect(() => {
     api.get("/announcements").then((r) => setAnnouncements(r.data)).catch(() => {});
     api.get("/links", { params: { section: "quick" } }).then((r) => setQuickLinks(r.data)).catch(() => {});
+    api.get("/officers").then((r) => setOfficers(r.data)).catch(() => {});
   }, []);
 
   const filteredAnnouncements = useMemo(() => {
@@ -277,6 +279,69 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* OFFICERS */}
+      {officers.length > 0 && (
+        <section className="max-w-7xl mx-auto px-6 lg:px-10 pb-4" data-testid="officers-section">
+          <div className="border-t border-ink/10 pt-16">
+            <div className="flex items-end justify-between flex-wrap gap-4 mb-8">
+              <div>
+                <p className="overline mb-3 flex items-center gap-2">
+                  <Users className="w-3.5 h-3.5" strokeWidth={1.75} />
+                  Your officers
+                </p>
+                <h2 className="font-serif text-4xl md:text-5xl tracking-tight">
+                  Meet your <span className="italic text-sage">student officers.</span>
+                </h2>
+                <p className="mt-4 text-inkMuted max-w-2xl leading-relaxed">
+                  The people behind SOULS this year. Not sure who to approach?
+                  Start with the officer whose role matches your concern.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {officers.map((o) => {
+                const initials = (o.name || "?")
+                  .split(" ")
+                  .map((s) => s[0])
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .join("")
+                  .toUpperCase();
+                return (
+                  <div
+                    key={o.id}
+                    className="card-flat p-5 flex flex-col items-center text-center"
+                    data-testid={`officer-${o.id}`}
+                  >
+                    <div className="w-20 h-20 rounded-full overflow-hidden border border-ink/10 bg-sage-light flex items-center justify-center mb-4">
+                      {o.photo_url ? (
+                        <img
+                          src={o.photo_url}
+                          alt={o.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => { e.currentTarget.style.display = "none"; }}
+                        />
+                      ) : (
+                        <span className="font-serif text-2xl text-sage-dark">{initials}</span>
+                      )}
+                    </div>
+                    <p className="font-serif text-base leading-tight">{o.name}</p>
+                    <p className="mt-1.5 font-mono text-[10px] tracking-[0.18em] uppercase text-inkMuted">
+                      {o.role}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+
+            <p className="mt-6 text-xs font-mono uppercase tracking-[0.2em] text-inkMuted">
+              Editable by student officers in the admin panel
+            </p>
+          </div>
+        </section>
+      )}
 
       {/* ANNOUNCEMENTS */}
       {announcements.length > 0 && (

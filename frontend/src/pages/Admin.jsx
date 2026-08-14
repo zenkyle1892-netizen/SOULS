@@ -1158,6 +1158,145 @@ function StoryManager() {
   );
 }
 
+function OfficerManager() {
+  const [rows, setRows] = useState([]);
+  const [draft, setDraft] = useState({ name: "", role: "", photo_url: "", order: 0 });
+
+  const load = () => api.get("/officers").then((r) => setRows(r.data));
+  useEffect(() => { load(); }, []);
+
+  const create = async () => {
+    if (!draft.name || !draft.role) return toast.error("Name and role required.");
+    try {
+      await api.post("/officers", draft, { headers: adminHeaders() });
+      toast.success("Officer added.");
+      setDraft({ name: "", role: "", photo_url: "", order: 0 });
+      load();
+    } catch { toast.error("Failed to add officer."); }
+  };
+
+  const save = async (o) => {
+    try {
+      await api.put(`/officers/${o.id}`, {
+        name: o.name, role: o.role, photo_url: o.photo_url, order: Number(o.order) || 0,
+      }, { headers: adminHeaders() });
+      toast.success("Saved.");
+      load();
+    } catch { toast.error("Save failed."); }
+  };
+
+  const remove = async (id) => {
+    if (!window.confirm("Remove this officer?")) return;
+    try {
+      await api.delete(`/officers/${id}`, { headers: adminHeaders() });
+      toast.success("Removed.");
+      load();
+    } catch { toast.error("Delete failed."); }
+  };
+
+  return (
+    <div className="space-y-8">
+      <div className="card-flat p-6" data-testid="officer-create-card">
+        <h3 className="font-serif text-xl mb-4">Add an officer</h3>
+        <div className="grid md:grid-cols-2 gap-3">
+          <Input
+            placeholder="Full name"
+            value={draft.name}
+            onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+            data-testid="new-officer-name"
+          />
+          <Input
+            placeholder="Role (e.g. President)"
+            value={draft.role}
+            onChange={(e) => setDraft({ ...draft, role: e.target.value })}
+            data-testid="new-officer-role"
+          />
+        </div>
+        <div className="grid md:grid-cols-[1fr_120px] gap-3 mt-3">
+          <Input
+            placeholder="Photo URL (optional)"
+            value={draft.photo_url}
+            onChange={(e) => setDraft({ ...draft, photo_url: e.target.value })}
+            data-testid="new-officer-photo"
+          />
+          <Input
+            type="number"
+            placeholder="Order"
+            value={draft.order}
+            onChange={(e) => setDraft({ ...draft, order: Number(e.target.value) })}
+          />
+        </div>
+        <Button className="mt-4" onClick={create} data-testid="create-officer-btn">
+          <Plus className="w-4 h-4 mr-1" /> Add officer
+        </Button>
+      </div>
+
+      <div className="space-y-3">
+        {rows.map((o, idx) => (
+          <div key={o.id} className="card-flat p-5" data-testid={`officer-row-${o.id}`}>
+            <div className="grid md:grid-cols-[80px_1fr] gap-4 items-start">
+              <div className="w-20 h-20 rounded-full overflow-hidden border border-ink/10 bg-sage-light flex items-center justify-center shrink-0">
+                {o.photo_url ? (
+                  <img
+                    src={o.photo_url}
+                    alt={o.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => { e.currentTarget.style.opacity = "0.2"; }}
+                  />
+                ) : (
+                  <span className="font-serif text-lg text-sage-dark">
+                    {(o.name || "?").split(" ").map((s) => s[0]).filter(Boolean).slice(0, 2).join("").toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <div>
+                <div className="grid md:grid-cols-2 gap-3">
+                  <Input
+                    value={o.name}
+                    onChange={(e) => {
+                      const next = [...rows]; next[idx].name = e.target.value; setRows(next);
+                    }}
+                  />
+                  <Input
+                    value={o.role}
+                    onChange={(e) => {
+                      const next = [...rows]; next[idx].role = e.target.value; setRows(next);
+                    }}
+                  />
+                </div>
+                <div className="grid md:grid-cols-[1fr_120px] gap-3 mt-3">
+                  <Input
+                    placeholder="Photo URL"
+                    value={o.photo_url}
+                    onChange={(e) => {
+                      const next = [...rows]; next[idx].photo_url = e.target.value; setRows(next);
+                    }}
+                  />
+                  <Input
+                    type="number"
+                    value={o.order}
+                    onChange={(e) => {
+                      const next = [...rows]; next[idx].order = Number(e.target.value); setRows(next);
+                    }}
+                  />
+                </div>
+                <div className="mt-3 flex gap-2">
+                  <Button size="sm" variant="secondary" onClick={() => save(o)} data-testid={`save-officer-${o.id}`}>
+                    <Save className="w-4 h-4 mr-1" /> Save
+                  </Button>
+                  <Button size="sm" variant="destructive" onClick={() => remove(o.id)} data-testid={`delete-officer-${o.id}`}>
+                    <Trash2 className="w-4 h-4 mr-1" /> Remove
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SettingsManager() {
   const [s, setS] = useState({ ask_form_url: "", check_in_form_url: "", pulse_sheet_url: "", contribution_form_url: "", photo_form_url: "", org_name: "" });
   const [loaded, setLoaded] = useState(false);
@@ -1300,6 +1439,7 @@ export default function Admin() {
             <TabsTrigger value="links" data-testid="tab-links">Links</TabsTrigger>
             <TabsTrigger value="photos" data-testid="tab-photos">Photos</TabsTrigger>
             <TabsTrigger value="stories" data-testid="tab-stories">Stories</TabsTrigger>
+            <TabsTrigger value="officers" data-testid="tab-officers">Officers</TabsTrigger>
             <TabsTrigger value="settings" data-testid="tab-settings">Settings</TabsTrigger>
           </TabsList>
           <TabsContent value="announcements" className="mt-6">
@@ -1322,6 +1462,9 @@ export default function Admin() {
           </TabsContent>
           <TabsContent value="stories" className="mt-6">
             <StoryManager />
+          </TabsContent>
+          <TabsContent value="officers" className="mt-6">
+            <OfficerManager />
           </TabsContent>
           <TabsContent value="settings" className="mt-6">
             <SettingsManager />

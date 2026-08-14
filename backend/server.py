@@ -446,6 +446,66 @@ async def delete_story(story_id: str, _: bool = Depends(require_admin)):
     return {"ok": True}
 
 
+# --------- Officers ---------
+class Officer(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    role: str
+    photo_url: str = ""
+    order: int = 0
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+
+class OfficerCreate(BaseModel):
+    name: str
+    role: str
+    photo_url: str = ""
+    order: int = 0
+
+
+class OfficerUpdate(BaseModel):
+    name: Optional[str] = None
+    role: Optional[str] = None
+    photo_url: Optional[str] = None
+    order: Optional[int] = None
+
+
+@api_router.get("/officers", response_model=List[Officer])
+async def list_officers():
+    docs = await db.officers.find({}, {"_id": 0}).to_list(500)
+    docs.sort(key=lambda d: (d.get("order", 0), d.get("created_at", "")))
+    return [Officer(**d) for d in docs]
+
+
+@api_router.post("/officers", response_model=Officer)
+async def create_officer(payload: OfficerCreate, _: bool = Depends(require_admin)):
+    o = Officer(**payload.model_dump())
+    await db.officers.insert_one(o.model_dump())
+    return o
+
+
+@api_router.put("/officers/{officer_id}", response_model=Officer)
+async def update_officer(officer_id: str, payload: OfficerUpdate, _: bool = Depends(require_admin)):
+    update = {k: v for k, v in payload.model_dump().items() if v is not None}
+    if not update:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    result = await db.officers.find_one_and_update(
+        {"id": officer_id}, {"$set": update}, return_document=True, projection={"_id": 0}
+    )
+    if not result:
+        raise HTTPException(status_code=404, detail="Officer not found")
+    return Officer(**result)
+
+
+@api_router.delete("/officers/{officer_id}")
+async def delete_officer(officer_id: str, _: bool = Depends(require_admin)):
+    res = await db.officers.delete_one({"id": officer_id})
+    if res.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Officer not found")
+    return {"ok": True}
+
+
 # --------- Settings (single doc, id="site") ---------
 class Settings(BaseModel):
     model_config = ConfigDict(extra="ignore")
