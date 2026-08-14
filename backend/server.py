@@ -706,25 +706,25 @@ SEED_ANNOUNCEMENTS = [
 SEED_LINKS = [
     # Quick links (Home)
     {"label": "Student Portal", "url": "https://myportal.spcdavao.edu.ph/login", "note": "Grades & enrollment", "section": "quick", "order": 1},
-    {"label": "Official School Website", "url": "#", "note": "Home page", "section": "quick", "order": 2},
-    {"label": "Institutional Email", "url": "#", "note": "Google Workspace", "section": "quick", "order": 3},
-    {"label": "Library", "url": "#", "note": "Catalog & databases", "section": "quick", "order": 4},
-    {"label": "Guidance & Counseling", "url": "#", "note": "Support services", "section": "quick", "order": 5},
-    {"label": "MLS Department", "url": "#", "note": "Department office", "section": "quick", "order": 6},
+    {"label": "Official School Website", "url": "https://www.facebook.com/SANPEDROCOLLEGEOfficial?", "note": "Home page", "section": "quick", "order": 2},
+    {"label": "Institutional Email", "url": "ictc@spcdavao.edu.ph", "note": "Google Workspace", "section": "quick", "order": 3},
+    {"label": "Library", "url": "https://www.facebook.com/spclrc?", "note": "Catalog & databases", "section": "quick", "order": 4},
+    {"label": "Guidance & Counseling", "url": "https://www.facebook.com/SPCGCTC?", "note": "Support services", "section": "quick", "order": 5},
+    {"label": "MLS Department", "url": "https://www.facebook.com/share/1DQyefPVyB/?mibextid=wwXIfr", "note": "Department office", "section": "quick", "order": 6},
     # Useful links (Resource Hub)
     {"label": "Student Portal", "url": "https://myportal.spcdavao.edu.ph/login", "note": "Grades, enrollment", "section": "useful", "order": 1},
-    {"label": "Official School Website", "url": "#", "note": "Home page", "section": "useful", "order": 2},
-    {"label": "Institutional Email", "url": "#", "note": "Google Workspace", "section": "useful", "order": 3},
-    {"label": "Library", "url": "#", "note": "Catalog & databases", "section": "useful", "order": 4},
-    {"label": "Guidance / Student Support", "url": "#", "note": "Counseling services", "section": "useful", "order": 5},
-    {"label": "Department Resources", "url": "#", "note": "MLS Department office", "section": "useful", "order": 6},
+    {"label": "Official School Website", "url": "https://www.facebook.com/SANPEDROCOLLEGEOfficial?", "note": "Home page", "section": "useful", "order": 2},
+    {"label": "Institutional Email", "url": "ictc@spcdavao.edu.ph", "note": "Google Workspace", "section": "useful", "order": 3},
+    {"label": "Library", "url": "https://www.facebook.com/spclrc?", "note": "Catalog & databases", "section": "useful", "order": 4},
+    {"label": "Guidance / Student Support", "url": "https://www.facebook.com/SPCGCTC?", "note": "Counseling services", "section": "useful", "order": 5},
+    {"label": "Department Resources", "url": "https://www.facebook.com/share/18wRXNepJ7/?mibextid=wwXIfr", "note": "MLS Department office", "section": "useful", "order": 6},
 ]
 
 SEED_SETTINGS = {
     "id": "site",
     "ask_form_url": "https://docs.google.com/forms/d/e/1FAIpQLSckhpdWmz_M4KX_9giLJkX4l5IvIzSzk_O3r5tcQ9txOL93rg/viewform?embedded=true",
-    "check_in_form_url": "",
-    "pulse_sheet_url": "",
+    "check_in_form_url": "<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSetWqXQI4N2W-YjEMb_ZKMwEBG59hiWfWSFbzPKkI3Cuvxgiw/viewform?embedded=true" width="640" height="723" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>",
+    "pulse_sheet_url": "<iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vTyt313treeKO4o7fXfcXur8VUQ8vLP-ez4ToISohYyRVpDsg2czW_gU-ks3Cx5PAS0MnPMxgZ23tbO/pubhtml?widget=true&amp;headers=false"></iframe>",
     "org_name": "Society of United Medical Laboratory Science",
 }
 
