@@ -1297,6 +1297,94 @@ function OfficerManager() {
   );
 }
 
+function AnalyticsView() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = () => {
+    setLoading(true);
+    api.get("/analytics/summary", { headers: adminHeaders() })
+      .then((r) => setData(r.data))
+      .finally(() => setLoading(false));
+  };
+  useEffect(() => { load(); }, []);
+
+  if (loading || !data) return <p className="text-sm text-inkMuted">Loading analytics…</p>;
+
+  const maxDay = Math.max(1, ...data.last_7_days.map((d) => d.count));
+  const maxPath = Math.max(1, ...data.by_path.map((p) => p.count));
+
+  return (
+    <div className="space-y-8" data-testid="analytics-view">
+      <div className="grid md:grid-cols-2 gap-4">
+        <div className="card-flat p-6" data-testid="stat-total">
+          <p className="overline mb-3">Total visits</p>
+          <p className="font-serif text-5xl tracking-tight">{data.total_visits.toLocaleString()}</p>
+          <p className="mt-2 text-xs text-inkMuted">All page views since launch.</p>
+        </div>
+        <div className="card-flat p-6" data-testid="stat-unique">
+          <p className="overline mb-3">Unique visitors</p>
+          <p className="font-serif text-5xl tracking-tight">{data.unique_visitors.toLocaleString()}</p>
+          <p className="mt-2 text-xs text-inkMuted">Distinct browsers / devices.</p>
+        </div>
+      </div>
+
+      <div className="card-flat p-6">
+        <div className="flex items-end justify-between mb-4">
+          <p className="overline">Last 7 days</p>
+          <button
+            onClick={load}
+            className="text-xs font-mono tracking-wide underline text-inkMuted hover:text-sage-dark"
+            data-testid="refresh-analytics"
+          >
+            Refresh
+          </button>
+        </div>
+        <div className="flex items-end gap-3 h-40" data-testid="last-7-days-chart">
+          {data.last_7_days.map((d) => {
+            const pct = (d.count / maxDay) * 100;
+            const label = new Date(d.date + "T00:00:00Z").toLocaleDateString(undefined, { month: "short", day: "numeric" });
+            return (
+              <div key={d.date} className="flex-1 flex flex-col items-center gap-2">
+                <span className="font-mono text-[11px] text-ink">{d.count}</span>
+                <div className="w-full flex-1 flex items-end">
+                  <div
+                    className="w-full bg-sage rounded-t-md transition-all"
+                    style={{ height: `${Math.max(pct, 3)}%` }}
+                  />
+                </div>
+                <span className="font-mono text-[10px] tracking-wide text-inkMuted uppercase">{label}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="card-flat p-6">
+        <p className="overline mb-4">By page</p>
+        {data.by_path.length === 0 ? (
+          <p className="text-sm text-inkMuted">No visits recorded yet.</p>
+        ) : (
+          <div className="space-y-2">
+            {data.by_path.map((p) => {
+              const pct = (p.count / maxPath) * 100;
+              return (
+                <div key={p.path} className="grid grid-cols-[140px_1fr_60px] gap-3 items-center" data-testid={`path-row-${p.path.replace(/[^a-z0-9]+/gi,'-')}`}>
+                  <span className="font-mono text-xs text-ink truncate" title={p.path}>{p.path || "/"}</span>
+                  <div className="h-2 bg-paperAlt rounded-full overflow-hidden">
+                    <div className="h-full bg-sage" style={{ width: `${pct}%` }} />
+                  </div>
+                  <span className="font-mono text-xs text-inkMuted text-right">{p.count}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function SettingsManager() {
   const [s, setS] = useState({ ask_form_url: "", check_in_form_url: "", pulse_sheet_url: "", contribution_form_url: "", photo_form_url: "", org_name: "" });
   const [loaded, setLoaded] = useState(false);
@@ -1440,6 +1528,7 @@ export default function Admin() {
             <TabsTrigger value="photos" data-testid="tab-photos">Photos</TabsTrigger>
             <TabsTrigger value="stories" data-testid="tab-stories">Stories</TabsTrigger>
             <TabsTrigger value="officers" data-testid="tab-officers">Officers</TabsTrigger>
+            <TabsTrigger value="analytics" data-testid="tab-analytics">Analytics</TabsTrigger>
             <TabsTrigger value="settings" data-testid="tab-settings">Settings</TabsTrigger>
           </TabsList>
           <TabsContent value="announcements" className="mt-6">
@@ -1465,6 +1554,9 @@ export default function Admin() {
           </TabsContent>
           <TabsContent value="officers" className="mt-6">
             <OfficerManager />
+          </TabsContent>
+          <TabsContent value="analytics" className="mt-6">
+            <AnalyticsView />
           </TabsContent>
           <TabsContent value="settings" className="mt-6">
             <SettingsManager />

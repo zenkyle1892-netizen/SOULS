@@ -506,6 +506,57 @@ async def delete_officer(officer_id: str, _: bool = Depends(require_admin)):
     return {"ok": True}
 
 
+# --------- Analytics ---------
+class VisitLog(BaseModel):
+    path: str
+    session_id: str
+
+
+@api_router.post("/visits/log")
+async def log_visit(payload: VisitLog):
+    doc = {
+        "id": str(uuid.uuid4()),
+        "path": payload.path[:120],
+        "session_id": payload.session_id[:64],
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.visits.insert_one(doc)
+    return {"ok": True}
+
+
+@api_router.get("/analytics/summary")
+async def analytics_summary(_: bool = Depends(require_admin)):
+    from collections import Counter
+    from datetime import timedelta
+    docs = await db.visits.find({}, {"_id": 0}).to_list(20000)
+
+    total = len(docs)
+    unique_sessions = len({d.get("session_id", "") for d in docs if d.get("session_id")})
+
+    path_counts = Counter(d.get("path", "/") for d in docs)
+    by_path = [
+        {"path": p, "count": c}
+        for p, c in sorted(path_counts.items(), key=lambda kv: -kv[1])
+    ]
+
+    # Last 7 days daily counts (UTC)
+    today = datetime.now(timezone.utc).date()
+    days = [(today - timedelta(days=i)) for i in range(6, -1, -1)]
+    day_counts = {d.isoformat(): 0 for d in days}
+    for d in docs:
+        ts = d.get("timestamp", "")
+        if ts[:10] in day_counts:
+            day_counts[ts[:10]] += 1
+    last_7 = [{"date": k, "count": v} for k, v in day_counts.items()]
+
+    return {
+        "total_visits": total,
+        "unique_visitors": unique_sessions,
+        "by_path": by_path,
+        "last_7_days": last_7,
+    }
+
+
 # --------- Settings (single doc, id="site") ---------
 class Settings(BaseModel):
     model_config = ConfigDict(extra="ignore")
