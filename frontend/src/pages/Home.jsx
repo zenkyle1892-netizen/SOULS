@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Compass, BookOpen, HeartPulse, MessageCircleQuestion, ArrowUpRight, Plus, Megaphone, Share2 } from "lucide-react";
+import { Compass, BookOpen, HeartPulse, MessageCircleQuestion, ArrowUpRight, Plus, Megaphone, Share2, Facebook } from "lucide-react";
 import { api } from "@/lib/api";
 
 const PATHWAYS = [
@@ -227,6 +227,53 @@ export default function Home() {
               support easier to reach. It doesn't replace your school offices;
               it points you toward them.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* SOULS FACEBOOK CTA */}
+      <section className="max-w-7xl mx-auto px-6 lg:px-10 pb-12" data-testid="souls-cta-section">
+        <div className="relative overflow-hidden rounded-3xl border border-ink/10 bg-ink text-paper p-8 md:p-12 grid lg:grid-cols-[1fr_auto] gap-8 items-center">
+          <div className="absolute -top-24 -right-16 w-72 h-72 rounded-full border border-sage/20 pointer-events-none" />
+          <div className="absolute -bottom-32 -left-16 w-96 h-96 rounded-full border border-sage/10 pointer-events-none" />
+          <div className="relative">
+            <p className="font-mono text-[11px] tracking-[0.24em] uppercase text-sage mb-4 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-sage" />
+              Follow SOULS
+            </p>
+            <h2 className="font-serif text-3xl md:text-4xl tracking-tight max-w-2xl leading-tight">
+              Stay in the loop with the
+              <span className="text-sage italic"> Society of United Medical Laboratory Scientists.</span>
+            </h2>
+            <p className="mt-4 text-paper/70 text-sm md:text-base max-w-xl leading-relaxed">
+              Follow the official SOULS Facebook page for real-time
+              announcements, event photos, and org updates straight from your
+              student officers.
+            </p>
+          </div>
+          <div className="relative flex flex-col gap-3 sm:flex-row lg:flex-col items-start">
+            <a
+              href="https://www.facebook.com/spcsouls"
+              target="_blank"
+              rel="noreferrer"
+              data-testid="souls-fb-cta"
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full text-sm tracking-wide bg-sage text-ink hover:bg-white transition-colors"
+            >
+              <Facebook className="w-4 h-4 fill-current" strokeWidth={0} />
+              Follow on Facebook
+              <ArrowUpRight className="w-4 h-4" strokeWidth={1.75} />
+            </a>
+            <a
+              href="https://www.facebook.com/SANPEDROCOLLEGEOfficial"
+              target="_blank"
+              rel="noreferrer"
+              data-testid="spc-fb-cta"
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full text-sm tracking-wide border border-paper/25 text-paper hover:border-paper hover:bg-paper/5 transition-colors"
+            >
+              <Facebook className="w-4 h-4" strokeWidth={1.75} />
+              San Pedro College
+              <ArrowUpRight className="w-4 h-4" strokeWidth={1.75} />
+            </a>
           </div>
         </div>
       </section>
