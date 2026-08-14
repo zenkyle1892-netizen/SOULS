@@ -723,8 +723,8 @@ SEED_LINKS = [
 SEED_SETTINGS = {
     "id": "site",
     "ask_form_url": "<iframe src='https://docs.google.com/forms/d/e/1FAIpQLSckhpdWmz_M4KX_9giLJkX4l5IvIzSzk_O3r5tcQ9txOL93rg/viewform?embedded=true",
-    "check_in_form_url": "<iframe src='https://docs.google.com/forms/d/e/1FAIpQLSetWqXQI4N2W-YjEMb_ZKMwEBG59hiWfWSFbzPKkI3Cuvxgiw/viewform?embedded=true" width='640' height='723' frameborder='0' marginheight='0' marginwidth='0'>Loading...</iframe>",
-    "pulse_sheet_url": "<iframe src='https://docs.google.com/spreadsheets/d/e/2PACX-1vTyt313treeKO4o7fXfcXur8VUQ8vLP-ez4ToISohYyRVpDsg2czW_gU-ks3Cx5PAS0MnPMxgZ23tbO/pubhtml?widget=true&amp;headers=false"></iframe>",
+    "check_in_form_url": "<iframe src='https://docs.google.com/forms/d/e/1FAIpQLSetWqXQI4N2W-YjEMb_ZKMwEBG59hiWfWSFbzPKkI3Cuvxgiw/viewform?embedded=true' width='640' height='723' frameborder='0' marginheight='0' marginwidth='0'>Loading...</iframe>",
+    "pulse_sheet_url": "<iframe src='https://docs.google.com/spreadsheets/d/e/2PACX-1vTyt313treeKO4o7fXfcXur8VUQ8vLP-ez4ToISohYyRVpDsg2czW_gU-ks3Cx5PAS0MnPMxgZ23tbO/pubhtml?widget=true&amp;headers=false'></iframe>",
     "org_name": "Society of United Medical Laboratory Science",
 }
 
