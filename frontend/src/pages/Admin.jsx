@@ -1527,6 +1527,25 @@ export default function Admin() {
   const [authed, setAuthed] = useState(!!getAdminPin());
   const navigate = useNavigate();
 
+  const [cardData, setCardData] = useState({
+  title: "",
+  description: "",
+  contact_info: ""
+});
+
+const handleSaveCard = async (cardId) => {
+  try {
+    const response = await api.put(`/api/admin/cards/${cardId}`, cardData, {
+      headers: adminHeaders()
+    });
+    if (response.status === 200) {
+      toast.success("Card updated successfully!");
+    }
+  } catch (error) {
+    toast.error("Failed to update card.");
+  }
+};
+
   if (!authed) return <LoginScreen onLogin={() => setAuthed(true)} />;
 
   const logout = () => {
@@ -1555,6 +1574,40 @@ export default function Admin() {
           </div>
         </div>
       </div>
+<div className="p-6 bg-card rounded-lg border shadow-sm space-y-4">
+  <h3 className="text-lg font-medium">Edit Card Details</h3>
+  
+  <div className="space-y-2">
+    <label className="text-sm font-medium">Title</label>
+    <Input 
+      value={cardData.title} 
+      onChange={(e) => setCardData({ ...cardData, title: e.target.value })} 
+      placeholder="e.g. Guidance & Counseling" 
+    />
+  </div>
+
+  <div className="space-y-2">
+    <label className="text-sm font-medium">Description</label>
+    <Textarea 
+      value={cardData.description} 
+      onChange={(e) => setCardData({ ...cardData, description: e.target.value })} 
+      placeholder="Enter description text..." 
+    />
+  </div>
+
+  <div className="space-y-2">
+    <label className="text-sm font-medium">Contact Info</label>
+    <Input 
+      value={cardData.contact_info} 
+      onChange={(e) => setCardData({ ...cardData, contact_info: e.target.value })} 
+      placeholder="Contact info - placeholder" 
+    />
+  </div>
+
+  <Button onClick={() => handleSaveCard("guidance")} className="flex items-center gap-2">
+    <Save className="w-4 h-4" /> Save Changes
+  </Button>
+</div>
 
       <div className="max-w-6xl mx-auto px-6 lg:px-10 py-10">
         <p className="overline mb-3">Content management</p>
